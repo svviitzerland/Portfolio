@@ -22,6 +22,7 @@
 
 	function onPointerDown(e) {
 		if (e.button !== 0) return;
+		if (window.innerWidth <= 1023) return;
 
 		dragging = true;
 		hasMoved = false;
@@ -64,16 +65,21 @@
 		dragOffsetX = 0;
 		dragOffsetY = 0;
 	}
+
+	function onButtonClick() {
+		if (window.innerWidth <= 1023) onclick?.();
+	}
 </script>
 
 <div
-	class="absolute"
+	class="app-icon absolute"
 	style="left: {displayX}px; top: {displayY}px; z-index: {dragging ? 50 : 10};"
 	in:fly={{ y: 10, duration: 300 }}
 >
 	<button
-		class="group flex flex-col items-center gap-1.5 w-[76px] p-2 rounded-lg hover:bg-white/10 transition-all duration-200 cursor-default select-none"
+		class="app-icon-button group flex flex-col items-center gap-1.5 w-[76px] p-2 rounded-lg hover:bg-white/10 transition-all duration-200 cursor-default select-none"
 		style="touch-action: none;"
+		onclick={onButtonClick}
 		onpointerdown={onPointerDown}
 		onpointermove={onPointerMove}
 		onpointerup={onPointerUp}
@@ -94,3 +100,35 @@
 		</span>
 	</button>
 </div>
+
+<style>
+	@media (max-width: 1023px) {
+		.app-icon {
+			position: static !important;
+			left: auto !important;
+			top: auto !important;
+			width: 100%;
+		}
+		.app-icon-button {
+			width: 100%;
+			padding: 0;
+			gap: 7px;
+			touch-action: manipulation !important;
+		}
+		.app-icon-button > div {
+			width: min(17vw, 68px);
+			height: min(17vw, 68px);
+			border-radius: 22%;
+		}
+		.app-icon-button > div :global(svg) {
+			width: 58%;
+			height: 58%;
+		}
+		.app-icon-button > span {
+			font-size: clamp(11px, 2.7vw, 14px);
+		}
+	}
+	@media (min-width: 700px) and (max-width: 1023px) {
+		.app-icon-button > div { width: 74px; height: 74px; }
+	}
+</style>

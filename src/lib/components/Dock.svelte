@@ -36,13 +36,13 @@
 </script>
 
 <!-- Dock -->
-<div class="pointer-events-none fixed inset-x-0 bottom-2 z-[900] flex justify-center px-2 pb-[env(safe-area-inset-bottom)] sm:bottom-3 sm:px-4">
+<div class="dock-position pointer-events-none fixed inset-x-0 bottom-2 z-[900] flex justify-center px-2 pb-[env(safe-area-inset-bottom)] sm:bottom-3 sm:px-4">
 	<nav
 		class="dock-glass liquid-glass-surface pointer-events-auto flex max-w-[calc(100vw-1rem)] items-end gap-0.5 overflow-x-auto rounded-[1.1rem] px-1.5 py-1 sm:gap-1 sm:px-2"
-		aria-label="Social links dock"
+		aria-label="Quick links dock"
 	>
 		{#each socials as social, i (social.network)}
-			<div class="relative">
+			<div class="dock-entry dock-social-{social.network.toLowerCase()} relative">
 				<!-- Tooltip -->
 				{#if tooltipIndex === i}
 					<div
@@ -91,7 +91,7 @@
 		<div class="dock-separator self-center" aria-hidden="true"></div>
 
 		<!-- Books dock button -->
-		<div class="relative">
+		<div class="dock-entry dock-book relative">
 			{#if tooltipIndex === socials.length + 1}
 				<div class="dock-tooltip liquid-glass-popover pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg px-3 py-1 text-xs text-white shadow-xl">
 					Books
@@ -113,7 +113,7 @@
 		</div>
 
 		<!-- Spotify dock button -->
-		<div class="relative">
+		<div class="dock-entry dock-spotify relative">
 			{#if tooltipIndex === socials.length}
 				<div class="dock-tooltip liquid-glass-popover pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg px-3 py-1 text-xs text-white shadow-xl">
 					Spotify
@@ -135,7 +135,7 @@
 		</div>
 
 		{#each minimizedWindows as desktopWindow, i (desktopWindow.id)}
-			<div class="relative shrink-0">
+			<div class="dock-entry dock-window relative shrink-0">
 				{#if tooltipIndex === socials.length + i + 2}
 					<div class="dock-tooltip liquid-glass-popover pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 rounded-lg px-3 py-1 text-xs text-white shadow-xl">
 						{desktopWindow.title}
@@ -232,6 +232,42 @@
 		height: 8px;
 		border-radius: 2px;
 		background: rgb(255 255 255 / 72%);
+	}
+
+	@media (max-width: 1023px) {
+		.dock-position {
+			bottom: 10px;
+			padding-inline: 18px;
+		}
+
+		.dock-glass {
+			width: min(100%, 272px);
+			max-width: none;
+			min-height: 68px;
+			justify-content: space-around;
+			gap: 4px;
+			padding: 7px 9px;
+			border-radius: 22px;
+		}
+
+		.dock-item {
+			width: 50px !important;
+			height: 50px !important;
+			border-radius: 16px !important;
+		}
+
+		.dock-item :global(svg) {
+			width: 27px;
+			height: 27px;
+		}
+
+		.dock-social-linkedin,
+		.dock-social-instagram,
+		.dock-social-medium,
+		.dock-separator,
+		.dock-window {
+			display: none;
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
