@@ -1,5 +1,6 @@
 <script>
 	import cv from '$data/cv.json';
+	import AppIcon from '$lib/components/AppIcon.svelte';
 
 	let { onopen, minimizedWindows = [], onrestore } = $props();
 
@@ -38,9 +39,21 @@
 <!-- Dock -->
 <div class="dock-position pointer-events-none fixed inset-x-0 bottom-2 z-[900] flex justify-center px-2 pb-[env(safe-area-inset-bottom)] sm:bottom-3 sm:px-4">
 	<nav
-		class="dock-glass liquid-glass-surface pointer-events-auto flex max-w-[calc(100vw-1rem)] items-end gap-0.5 overflow-x-auto rounded-[1.1rem] px-1.5 py-1 sm:gap-1 sm:px-2"
+		class="desktop-dock dock-glass liquid-glass-surface pointer-events-auto flex max-w-[calc(100vw-1rem)] items-end gap-0.5 overflow-x-auto rounded-[1.1rem] px-1.5 py-1 sm:gap-1 sm:px-2"
 		aria-label="Quick links dock"
 	>
+		<div class="dock-entry dock-finder relative">
+			<button
+				type="button"
+				class="dock-item liquid-glass-hover flex h-9 w-9 cursor-pointer items-center justify-center rounded-[0.8rem] sm:h-10 sm:w-10"
+				onclick={(e) => { e.stopPropagation(); onopen('projects'); }}
+				aria-label="Open Finder Projects"
+			>
+				<img class="dock-projects-finder h-8 w-8 rounded-[9px] sm:h-9 sm:w-9" src="/images/finder-icon.png" alt="" />
+				<img class="dock-projects-files h-8 w-8 sm:h-9 sm:w-9" src="/images/files-folder-icon.png" alt="" />
+			</button>
+		</div>
+
 		{#each socials as social, i (social.network)}
 			<div class="dock-entry dock-social-{social.network.toLowerCase()} relative">
 				<!-- Tooltip -->
@@ -62,9 +75,7 @@
 						onclick={(e) => { e.stopPropagation(); onopen('blog'); }}
 						aria-label="Open Blog"
 					>
-						<svg class="w-6 h-6" viewBox={iconMap['Blog'].viewBox} fill="currentColor">
-							<path d={iconMap['Blog'].path} />
-						</svg>
+						<AppIcon name="Blog" class="h-9 w-9" />
 					</button>
 				{:else}
 					<a
@@ -106,9 +117,7 @@
 				onclick={(e) => { e.stopPropagation(); onopen('book'); }}
 				aria-label="Open Books"
 			>
-				<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
-				</svg>
+				<AppIcon name="Books" class="h-9 w-9" />
 			</button>
 		</div>
 
@@ -128,9 +137,7 @@
 				onclick={(e) => { e.stopPropagation(); onopen('spotify'); }}
 				aria-label="Open Spotify"
 			>
-				<svg class="w-6 h-6" viewBox={iconMap['Spotify'].viewBox} fill="currentColor">
-					<path d={iconMap['Spotify'].path} />
-				</svg>
+				<AppIcon name="Spotify" class="h-9 w-9" />
 			</button>
 		</div>
 
@@ -155,6 +162,21 @@
 			</div>
 		{/each}
 	</nav>
+
+	<nav class="mobile-dock liquid-glass-surface pointer-events-auto flex items-center justify-around gap-2 rounded-[28px] px-3 py-2" aria-label="Quick apps">
+		<button type="button" class="dock-item flex h-14 w-14 items-center justify-center" onclick={(e) => { e.stopPropagation(); onopen('dossier'); }} aria-label="Open Farhan resume">
+			<AppIcon name="Farhan" class="h-12 w-12" />
+		</button>
+		<button type="button" class="dock-item flex h-14 w-14 items-center justify-center" onclick={(e) => { e.stopPropagation(); onopen('projects'); }} aria-label="Open Projects">
+			<AppIcon name="Projects" class="h-12 w-12" />
+		</button>
+		<button type="button" class="dock-item flex h-14 w-14 items-center justify-center" onclick={(e) => { e.stopPropagation(); onopen('blog'); }} aria-label="Open Blog">
+			<AppIcon name="Blog" class="h-12 w-12" />
+		</button>
+		<button type="button" class="dock-item flex h-14 w-14 items-center justify-center" onclick={(e) => { e.stopPropagation(); window.open('https://nimbus.farhanaulianda.my.id', '_blank', 'noopener'); }} aria-label="Open Nimbus">
+			<AppIcon name="Nimbus" class="h-12 w-12" />
+		</button>
+	</nav>
 </div>
 
 <style>
@@ -162,6 +184,10 @@
 		min-height: 2.75rem;
 		scrollbar-width: none;
 	}
+
+	.mobile-dock { display: none; }
+
+	.dock-projects-files { display: none; }
 
 	.dock-glass::-webkit-scrollbar {
 		display: none;
@@ -257,9 +283,14 @@
 			border-radius: 20px !important;
 		}
 
-		.dock-item :global(svg) {
-			width: 34px;
-			height: 34px;
+		.dock-item > :global(svg) {
+			width: 44px;
+			height: 44px;
+		}
+
+		.dock-item img {
+			width: 44px;
+			height: 44px;
 		}
 
 		.dock-social-linkedin,
@@ -269,6 +300,15 @@
 		.dock-window {
 			display: none;
 		}
+	}
+
+	@media (max-width: 699px) {
+		.desktop-dock { display: none; }
+		.mobile-dock { display: flex; width: min(100%, 380px); min-height: 76px; }
+		.mobile-dock .dock-item { width: 56px !important; height: 56px !important; padding: 0; }
+		.mobile-dock .dock-item > :global(svg) { width: 48px; height: 48px; }
+		.mobile-dock :global(.app-art.app-art-farhan),
+		.mobile-dock :global(.app-art.app-art-nimbus) { transform: none; }
 	}
 
 	@media (prefers-reduced-motion: reduce) {

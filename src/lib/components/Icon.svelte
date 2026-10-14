@@ -1,7 +1,8 @@
 <script>
 	import { fly } from 'svelte/transition';
+	import AppIcon from '$lib/components/AppIcon.svelte';
 
-	let { label, onclick, children, x = 0, y = 0, onmove } = $props();
+	let { label, onclick, x = 0, y = 0, onmove } = $props();
 
 	let dragging = $state(false);
 	let dragOffsetX = $state(0);
@@ -72,7 +73,7 @@
 </script>
 
 <div
-	class="app-icon absolute"
+	class="app-icon app-icon-{label?.toLowerCase()} absolute"
 	style="left: {displayX}px; top: {displayY}px; z-index: {dragging ? 50 : 10};"
 	in:fly={{ y: 10, duration: 300 }}
 >
@@ -87,9 +88,9 @@
 	>
 		<!-- Icon container -->
 		<div
-			class="liquid-glass-icon w-14 h-14 flex items-center justify-center rounded-[14px] group-hover:scale-105 transition-all duration-200"
+			class="app-icon-art w-[68px] h-[68px] flex items-center justify-center rounded-[19px] group-hover:scale-105 transition-all duration-200"
 		>
-			{@render children()}
+			<AppIcon name={label} />
 		</div>
 
 		<span
@@ -116,19 +117,26 @@
 			touch-action: manipulation !important;
 		}
 		.app-icon-button > div {
-			width: min(17vw, 74px);
-			height: min(17vw, 74px);
-			border-radius: 22%;
+			width: min(17vw, 68px);
+			height: min(17vw, 68px);
+			border-radius: 24%;
 		}
-		.app-icon-button > div :global(svg) {
-			width: 58%;
-			height: 58%;
+		.app-icon-button > div :global(.app-art) {
+			width: 100%;
+			height: 100%;
 		}
 		.app-icon-button > span {
 			font-size: clamp(11px, 2.7vw, 14px);
 		}
 	}
 	@media (min-width: 700px) and (max-width: 1023px) {
-		.app-icon-button > div { width: 74px; height: 74px; }
+		.app-icon-button > div { width: 72px; height: 72px; }
 	}
+	@media (max-width: 699px) {
+		.app-icon-farhan,
+		.app-icon-projects,
+		.app-icon-blog,
+		.app-icon-nimbus { display: none !important; }
+	}
+	.app-icon-art { background: transparent; border: 0; box-shadow: none; backdrop-filter: none; }
 </style>

@@ -16,8 +16,7 @@
 	const favorites = [
 		{ label: 'Projects', name: 'projects', icon: '▰' },
 		{ label: 'Blog', name: 'blog', icon: '✎' },
-		{ label: 'Books', name: 'book', icon: '▤' },
-		{ label: 'Spotify', name: 'spotify', icon: '◉' }
+		{ label: 'Books', name: 'book', icon: '▤' }
 	];
 
 	let x = $state(initialX);
