@@ -233,7 +233,7 @@
 </svelte:head>
 
 <!-- Desktop Shell -->
-<main class="ios-home" aria-label="Farhan portfolio home screen">
+<main class="ios-home" aria-label="Farhan portfolio home screen" class:mobile-app-open={windows.some((desktopWindow) => !desktopWindow.minimized)}>
 	<div class="ios-status"><span>9:41 <span class="status-location">◢</span></span><span class="status-island"></span><span>▮▮▮ ◉  ▰</span></div>
 	<section class="ios-widgets" aria-label="Widgets">
 		<WeatherWidget />
@@ -242,7 +242,7 @@
 	<div class="ios-search">⌕ &nbsp; Search</div>
 </main>
 
-<div class="desktop-shell fixed inset-0 isolate transform-gpu overflow-hidden select-none rounded-[24px] border border-white/20 bg-slate-950 shadow-[0_18px_60px_rgba(0,0,0,0.35)]" class:locked={isLocked}>
+<div class="desktop-shell fixed inset-0 isolate transform-gpu overflow-hidden select-none rounded-[24px] border border-white/20 bg-slate-950 shadow-[0_18px_60px_rgba(0,0,0,0.35)]" class:locked={isLocked} class:mobile-app-open={windows.some((desktopWindow) => !desktopWindow.minimized)}>
 	<!-- macOS Big Sur wallpaper -->
 	<img
 		src="/images/earth-night-wallpaper.webp"
@@ -443,6 +443,10 @@
 	<div class="lock-menubar"><MenuBar bind:brightness lockscreen /></div>
 {/if}
 
+{#if !isLocked}
+	<div class="mobile-scroll-space" aria-hidden="true"></div>
+{/if}
+
 <style>
 	.lock-screen {
 		position: fixed; inset: 0; z-index: 2000; display: block; width: 100%; height: 100%; overflow: hidden;
@@ -468,6 +472,7 @@
 	.lock-home-indicator { display: none; }
 	.lock-screen:focus-visible { outline: 3px solid #a9caff; outline-offset: -7px; }
 	.ios-home { display: none; }
+	.mobile-scroll-space { display: none; }
 	@media (max-width: 1023px) {
 		.ios-home {
 			position: fixed; inset: 0; z-index: 0; display: flex; flex-direction: column;
@@ -497,6 +502,10 @@
 		.ios-search { position: fixed; left: 50%; bottom: calc(118px + env(safe-area-inset-bottom)); z-index: 10; margin: 0; padding: 7px 17px; transform: translateX(-50%); border: 1px solid #ffffff30; border-radius: 22px; background: #ffffff30; backdrop-filter: blur(18px); color: #ffffffe0; font-size: 14px; }
 	}
 	@media (max-width: 699px) {
+		.mobile-scroll-space { display: block; flex: 0 0 96px; width: 1px; }
+		.desktop-shell.mobile-app-open .desktop-icons,
+		.desktop-shell.mobile-app-open .shared-dock { display: none; }
+		.ios-home.mobile-app-open { display: none; }
 		.lock-screen { background-position: 54% center; }
 		.lock-menubar { display: none; }
 		.lock-clock { top: calc(max(env(safe-area-inset-top), 28px) + 8vh); }

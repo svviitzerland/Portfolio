@@ -1,6 +1,9 @@
 <script>
+	import { onMount } from 'svelte';
+
 	let weather = $state(null);
 	let status = $state('idle');
+	const JAKARTA = { latitude: -6.2088, longitude: 106.8456 };
 
 	const conditions = {
 		0: ['Clear', '☀️'],
@@ -35,63 +38,48 @@
 
 	function loadWeather() {
 		if (status === 'loading') return;
-		if (!navigator.geolocation) {
-			status = 'unsupported';
-			return;
-		}
-
 		status = 'loading';
-		navigator.geolocation.getCurrentPosition(
-			async ({ coords }) => {
-				try {
-					const query = new URLSearchParams({
-						latitude: String(coords.latitude),
-						longitude: String(coords.longitude),
-						current: 'temperature_2m,weather_code',
-						daily: 'temperature_2m_max,temperature_2m_min',
-						timezone: 'auto',
-						temperature_unit: 'celsius'
-					});
-					const response = await fetch(`https://api.open-meteo.com/v1/forecast?${query}`);
-					if (!response.ok) throw new Error('Weather request failed');
-					const data = await response.json();
-					const [description, icon] = conditions[data.current?.weather_code] ?? ['Weather', '🌤️'];
-
-					weather = {
-						temperature: Math.round(data.current.temperature_2m),
-						description,
-						icon,
-						high: Math.round(data.daily.temperature_2m_max[0]),
-						low: Math.round(data.daily.temperature_2m_min[0])
-					};
-					status = 'ready';
-				} catch {
-					status = 'error';
-				}
-			},
-			() => {
-				status = 'denied';
-			},
-			{ enableHighAccuracy: false, maximumAge: 600000, timeout: 10000 }
-		);
+		const query = new URLSearchParams({
+			latitude: String(JAKARTA.latitude),
+			longitude: String(JAKARTA.longitude),
+			current: 'temperature_2m,weather_code',
+			daily: 'temperature_2m_max,temperature_2m_min',
+			timezone: 'Asia/Jakarta',
+			temperature_unit: 'celsius'
+		});
+		fetch(`https://api.open-meteo.com/v1/forecast?${query}`)
+			.then((response) => {
+				if (!response.ok) throw new Error('Weather request failed');
+				return response.json();
+			})
+			.then((data) => {
+				const [description, icon] = conditions[data.current?.weather_code] ?? ['Weather', '🌤️'];
+				weather = {
+					temperature: Math.round(data.current.temperature_2m),
+					description,
+					icon,
+					high: Math.round(data.daily.temperature_2m_max[0]),
+					low: Math.round(data.daily.temperature_2m_min[0])
+				};
+				status = 'ready';
+			})
+			.catch(() => (status = 'error'));
 	}
+
+	onMount(loadWeather);
 
 	const prompt = $derived(
 		status === 'loading'
-			? 'Finding local weather…'
-			: status === 'denied'
-				? 'Location unavailable'
-				: status === 'unsupported'
-					? 'Location is not supported'
-					: status === 'error'
-						? 'Weather could not load'
-						: 'Tap to use your location'
+			? 'Loading Jakarta weather…'
+			: status === 'error'
+				? 'Weather could not load'
+				: 'Loading Jakarta weather…'
 	);
 </script>
 
-<button class="ios-widget weather-widget" onclick={loadWeather} aria-label="Load weather for your location">
-	<span class="widget-kicker">{weather ? 'NEAR YOU' : 'LOCAL WEATHER'}</span>
+<button class="ios-widget weather-widget" onclick={loadWeather} aria-label="Refresh Jakarta weather">
+	<span class="widget-kicker">JAKARTA</span>
 	<strong>{weather ? `${weather.temperature}°` : '—°'}</strong>
 	<span>{weather ? `${weather.icon} ${weather.description}` : prompt}</span>
-	<small>{weather ? `H:${weather.high}°  L:${weather.low}° · Open-Meteo` : 'Local forecast'}</small>
+	<small>{weather ? `H:${weather.high}°  L:${weather.low}°` : 'Indonesia'}</small>
 </button>

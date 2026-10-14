@@ -121,6 +121,7 @@
 		</div>
 
 		<h2 class="min-w-0 flex-1 truncate text-center text-[13px] font-semibold text-white/90">{title}</h2>
+		<button class="mobile-app-close" aria-label="Close {title}" onclick={(event) => { event.stopPropagation(); close(); }}>‹</button>
 
 		<div class="flex shrink-0 items-center gap-2" onpointerdown={(event) => event.stopPropagation()}>
 			<div class="relative hidden w-40 sm:block">
@@ -229,12 +230,53 @@
 
 	@media (max-width: 639px) {
 		.finder-window {
-			left: 8px !important;
-			top: 40px !important;
-			width: calc(100vw - 16px) !important;
-			height: calc(100dvh - 116px) !important;
+			inset: 0 !important;
+			width: 100vw !important;
+			height: 100dvh !important;
+			border: 0;
+			border-radius: 0;
+			padding-top: env(safe-area-inset-top);
+			padding-bottom: env(safe-area-inset-bottom);
+			background: #111318;
+			backdrop-filter: none;
+		}
+
+		.finder-toolbar {
+			height: 52px;
+			padding-inline: 18px;
+			border-bottom-color: rgb(255 255 255 / 10%);
+			cursor: default;
+		}
+
+		.finder-toolbar > div:first-child,
+		.finder-toolbar > div:nth-child(2),
+		.finder-toolbar > div:last-child {
+			display: none;
+		}
+
+		.finder-toolbar h2 {
+			text-align: left;
+			font-size: 17px;
+		}
+
+		.finder-toolbar .mobile-app-close {
+			display: grid;
+			width: 36px;
+			height: 36px;
+			place-items: center;
+			border-radius: 50%;
+			background: rgb(255 255 255 / 9%);
+			color: white;
+			font-size: 30px;
+			line-height: 1;
+		}
+
+		.finder-content {
+			padding-bottom: 16px;
 		}
 	}
+
+	.mobile-app-close { display: none; }
 
 	@media (prefers-reduced-motion: no-preference) {
 		.finder-window {
