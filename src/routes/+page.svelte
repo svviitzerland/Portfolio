@@ -84,16 +84,19 @@
 		name="description"
 		content="Full Stack & Cloud Engineer | Security & AI/ML Enthusiast"
 	/>
+	<link rel="preload" as="image" href="/images/big-sur-wallpaper.webp" fetchpriority="high" />
 </svelte:head>
 
 <!-- Desktop Shell -->
 <div class="desktop-shell fixed inset-0 isolate transform-gpu overflow-hidden select-none rounded-[24px] border border-white/20 bg-slate-950 shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
 	<!-- macOS Big Sur wallpaper -->
-	<div
-		class="absolute inset-0 bg-cover bg-center"
-		style="background-image: url('/images/big-sur-wallpaper.jpg')"
+	<img
+		src="/images/big-sur-wallpaper.webp"
+		alt=""
+		fetchpriority="high"
+		class="absolute inset-0 h-full w-full object-cover object-center"
 		aria-hidden="true"
-	></div>
+	/>
 	<div
 		class="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/20 to-slate-950/35"
 		aria-hidden="true"
