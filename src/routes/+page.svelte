@@ -18,6 +18,9 @@
 	let brightness = $state(100);
 	let nextWindowId = 1;
 	let highestZIndex = 20;
+	let windowLimitNotice = $state(false);
+	let windowLimitTimer;
+	const MAX_DESKTOP_WINDOWS = 8;
 
 	const posts = $derived(data?.posts || []);
 	const windowTitles = {
@@ -79,6 +82,12 @@
 
 	function openWindow(name) {
 		if (!windowTitles[name]) return;
+		if (windows.length >= MAX_DESKTOP_WINDOWS) {
+			windowLimitNotice = true;
+			clearTimeout(windowLimitTimer);
+			windowLimitTimer = setTimeout(() => (windowLimitNotice = false), 1800);
+			return;
+		}
 
 		const id = nextWindowId++;
 		const width = Math.min(960, Math.max(420, window.innerWidth - 48));
@@ -288,6 +297,11 @@
 			class="absolute inset-0 bg-black pointer-events-none z-[950]"
 			style="opacity: {(100 - brightness) / 100}"
 		></div>
+	{/if}
+	{#if windowLimitNotice}
+		<div class="liquid-glass-popover fixed top-12 left-1/2 z-[1100] -translate-x-1/2 rounded-xl px-4 py-2 text-xs font-medium text-slate-900 shadow-xl" role="status">
+			Batas 8 jendela tercapai. Tutup jendela untuk membuka yang baru.
+		</div>
 	{/if}
 	{#each windows.filter((desktopWindow) => !desktopWindow.minimized) as desktopWindow (desktopWindow.id)}
 		<DesktopWindow
