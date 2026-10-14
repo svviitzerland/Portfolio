@@ -38,7 +38,7 @@
 <svelte:window onclick={handleClickOutside} />
 
 <header
-	class="liquid-glass-menubar fixed top-0 left-0 right-0 z-50 flex h-8 items-center justify-between px-4 select-none"
+	class="liquid-glass-menubar fixed top-0 left-0 right-0 z-[1000] flex h-8 items-center justify-between px-4 select-none"
 >
 	<!-- Left: Name -->
 	<span class="text-[12px] font-medium text-slate-950/85">Farhan Aulianda</span>

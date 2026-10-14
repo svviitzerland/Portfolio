@@ -7,18 +7,26 @@
 	import BlogContent from '$lib/components/desktop/BlogContent.svelte';
 	import BooksContent from '$lib/components/desktop/BooksContent.svelte';
 	import SpotifyContent from '$lib/components/desktop/SpotifyContent.svelte';
-	import ResumeModal from '$lib/components/ResumeModal.svelte';
+	import ResumeContent from '$lib/components/ResumeContent.svelte';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 
 	let { data } = $props();
 
-	/** @type {null | 'projects' | 'blog' | 'book' | 'dossier' | 'spotify'} */
-	let activeWindow = $state(null);
+	let windows = $state([]);
 	let brightness = $state(100);
+	let nextWindowId = 1;
+	let highestZIndex = 20;
 
 	const posts = $derived(data?.posts || []);
+	const windowTitles = {
+		projects: 'Projects',
+		blog: 'Blog',
+		book: 'Books',
+		dossier: 'Farhan — Resume',
+		spotify: 'Spotify'
+	};
 
 	// Desktop icon positions with localStorage persistence
 	const POSITIONS_KEY = 'desktop-icon-positions';
@@ -51,7 +59,7 @@
 		const openParam = $page.url.searchParams.get('open');
 		const requestedWindow = $page.url.searchParams.has('book') ? 'book' : openParam;
 		if (requestedWindow && ['projects', 'blog', 'book', 'dossier', 'spotify'].includes(requestedWindow)) {
-			activeWindow = requestedWindow;
+			openWindow(requestedWindow);
 			// Clean URL without reloading
 			goto('/', { replaceState: true, noScroll: true });
 		}
@@ -70,13 +78,65 @@
 	});
 
 	function openWindow(name) {
-		activeWindow = name;
+		if (!windowTitles[name]) return;
+
+		const id = nextWindowId++;
+		const width = Math.min(960, Math.max(420, window.innerWidth - 48));
+		const height = Math.min(680, Math.max(320, window.innerHeight - 144));
+		const cascade = windows.length % 7 * 30;
+		const centeredX = Math.round((window.innerWidth - width) / 2);
+		const centeredY = Math.round((window.innerHeight - height) / 2) - 18;
+
+		windows = [
+			...windows,
+			{
+				id,
+				name,
+				title: windowTitles[name],
+				x: Math.max(8, Math.min(centeredX + cascade, window.innerWidth - 120)),
+				y: Math.max(40, Math.min(centeredY + cascade, window.innerHeight - 110)),
+				width,
+				height,
+				zIndex: ++highestZIndex,
+				minimized: false
+			}
+		];
 	}
 
-	function closeWindow() {
-		activeWindow = null;
+	function focusWindow(id) {
+		highestZIndex += 1;
+		windows = windows.map((desktopWindow) =>
+			desktopWindow.id === id ? { ...desktopWindow, zIndex: highestZIndex } : desktopWindow
+		);
+	}
+
+	function closeWindow(id) {
+		windows = windows.filter((desktopWindow) => desktopWindow.id !== id);
+	}
+
+	function minimizeWindow(id) {
+		windows = windows.map((desktopWindow) =>
+			desktopWindow.id === id ? { ...desktopWindow, minimized: true } : desktopWindow
+		);
+	}
+
+	function restoreWindow(id) {
+		windows = windows.map((desktopWindow) =>
+			desktopWindow.id === id ? { ...desktopWindow, minimized: false } : desktopWindow
+		);
+		focusWindow(id);
+	}
+
+	function handleWindowKeydown(event) {
+		if (event.key !== 'Escape') return;
+		const frontWindow = windows
+			.filter((desktopWindow) => !desktopWindow.minimized)
+			.sort((a, b) => b.zIndex - a.zIndex)[0];
+		if (frontWindow) closeWindow(frontWindow.id);
 	}
 </script>
+
+<svelte:window onkeydown={handleWindowKeydown} />
 
 <svelte:head>
 	<title>Farhan Aulianda</title>
@@ -206,50 +266,50 @@
 	</div>
 
 	<!-- Dock -->
-	<Dock onopen={openWindow} />
+	<Dock
+		onopen={openWindow}
+		minimizedWindows={windows.filter((desktopWindow) => desktopWindow.minimized)}
+		onrestore={restoreWindow}
+	/>
 
 	<!-- Brightness overlay -->
 	{#if brightness < 100}
 		<div
-			class="absolute inset-0 bg-black pointer-events-none z-[45]"
+			class="absolute inset-0 bg-black pointer-events-none z-[950]"
 			style="opacity: {(100 - brightness) / 100}"
 		></div>
 	{/if}
+	{#each windows.filter((desktopWindow) => !desktopWindow.minimized) as desktopWindow (desktopWindow.id)}
+		<DesktopWindow
+			title={desktopWindow.title}
+			zIndex={desktopWindow.zIndex}
+			initialX={desktopWindow.x}
+			initialY={desktopWindow.y}
+			initialWidth={desktopWindow.width}
+			initialHeight={desktopWindow.height}
+			close={() => closeWindow(desktopWindow.id)}
+			minimize={() => minimizeWindow(desktopWindow.id)}
+			onfocus={() => focusWindow(desktopWindow.id)}
+			onopen={openWindow}
+		>
+			{#snippet children(search)}
+				{#if desktopWindow.name === 'projects'}
+					<ProjectsContent {search} />
+				{:else if desktopWindow.name === 'blog'}
+					<BlogContent {posts} {search} />
+				{:else if desktopWindow.name === 'book'}
+					<BooksContent books={data?.books || []} {search} />
+				{:else if desktopWindow.name === 'spotify'}
+					<SpotifyContent {search} />
+				{:else if desktopWindow.name === 'dossier'}
+					<div class="min-h-full bg-white px-5 py-4 text-zinc-900">
+						<a href="/resume.pdf" download="Resume - Farhan Aulianda.pdf" class="mb-4 inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-3 py-2 text-xs font-semibold text-white hover:bg-zinc-700">
+							Download PDF
+						</a>
+						<ResumeContent />
+					</div>
+				{/if}
+			{/snippet}
+		</DesktopWindow>
+	{/each}
 </div>
-
-<!-- Window Modals -->
-{#if activeWindow === 'projects'}
-	<DesktopWindow title="Projects" close={closeWindow}>
-		{#snippet children(search)}
-			<ProjectsContent {search} />
-		{/snippet}
-	</DesktopWindow>
-{/if}
-
-{#if activeWindow === 'blog'}
-	<DesktopWindow title="Blog" close={closeWindow}>
-		{#snippet children(search)}
-			<BlogContent {posts} {search} />
-		{/snippet}
-	</DesktopWindow>
-{/if}
-
-{#if activeWindow === 'book'}
-	<DesktopWindow title="Books" close={closeWindow}>
-		{#snippet children(search)}
-			<BooksContent books={data?.books || []} {search} />
-		{/snippet}
-	</DesktopWindow>
-{/if}
-
-{#if activeWindow === 'dossier'}
-	<ResumeModal close={closeWindow} />
-{/if}
-
-{#if activeWindow === 'spotify'}
-	<DesktopWindow title="Spotify" close={closeWindow}>
-		{#snippet children(search)}
-			<SpotifyContent {search} />
-		{/snippet}
-	</DesktopWindow>
-{/if}

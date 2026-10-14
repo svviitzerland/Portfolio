@@ -1,7 +1,7 @@
 <script>
 	import cv from '$data/cv.json';
 
-	let { onopen } = $props();
+	let { onopen, minimizedWindows = [], onrestore } = $props();
 
 	const { socials } = cv;
 
@@ -36,9 +36,9 @@
 </script>
 
 <!-- Dock -->
-<div class="pointer-events-none fixed inset-x-0 bottom-2 z-40 flex justify-center px-2 pb-[env(safe-area-inset-bottom)] sm:bottom-3 sm:px-4">
+<div class="pointer-events-none fixed inset-x-0 bottom-2 z-[900] flex justify-center px-2 pb-[env(safe-area-inset-bottom)] sm:bottom-3 sm:px-4">
 	<nav
-		class="dock-glass liquid-glass-surface pointer-events-auto flex max-w-[calc(100vw-1rem)] items-end gap-0.5 rounded-[1.1rem] px-1.5 py-1 sm:gap-1 sm:px-2"
+		class="dock-glass liquid-glass-surface pointer-events-auto flex max-w-[calc(100vw-1rem)] items-end gap-0.5 overflow-x-auto rounded-[1.1rem] px-1.5 py-1 sm:gap-1 sm:px-2"
 		aria-label="Social links dock"
 	>
 		{#each socials as social, i (social.network)}
@@ -133,12 +133,38 @@
 				</svg>
 			</button>
 		</div>
+
+		{#each minimizedWindows as desktopWindow, i (desktopWindow.id)}
+			<div class="relative shrink-0">
+				{#if tooltipIndex === socials.length + i + 2}
+					<div class="dock-tooltip liquid-glass-popover pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 rounded-lg px-3 py-1 text-xs text-white shadow-xl">
+						{desktopWindow.title}
+						<div class="dock-tooltip-arrow absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45"></div>
+					</div>
+				{/if}
+				<button
+					type="button"
+					class="dock-item liquid-glass-hover flex h-9 w-9 cursor-pointer items-center justify-center rounded-[0.8rem] sm:h-10 sm:w-10"
+					onmouseenter={() => (tooltipIndex = socials.length + i + 2)}
+					onmouseleave={() => (tooltipIndex = -1)}
+					onclick={(event) => { event.stopPropagation(); onrestore(desktopWindow.id); }}
+					aria-label="Restore {desktopWindow.title}"
+				>
+					<span class="dock-window-preview" aria-hidden="true"><span></span></span>
+				</button>
+			</div>
+		{/each}
 	</nav>
 </div>
 
 <style>
 	.dock-glass {
 		min-height: 2.75rem;
+		scrollbar-width: none;
+	}
+
+	.dock-glass::-webkit-scrollbar {
+		display: none;
 	}
 
 	.dock-item {
@@ -174,6 +200,38 @@
 		height: 1.6rem;
 		margin-inline: 0.15rem;
 		background: rgb(var(--liquid-glass-tint) / var(--liquid-glass-separator-opacity));
+	}
+
+	.dock-window-preview {
+		position: relative;
+		display: block;
+		width: 25px;
+		height: 20px;
+		overflow: hidden;
+		border: 1px solid rgb(255 255 255 / 55%);
+		border-radius: 4px;
+		background: linear-gradient(145deg, rgb(240 246 255 / 72%), rgb(89 123 161 / 76%));
+		box-shadow: 0 2px 4px rgb(0 0 0 / 22%);
+	}
+
+	.dock-window-preview::before {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		content: '';
+		background: rgb(28 35 45 / 80%);
+	}
+
+	.dock-window-preview span {
+		position: absolute;
+		top: 7px;
+		left: 4px;
+		width: 15px;
+		height: 8px;
+		border-radius: 2px;
+		background: rgb(255 255 255 / 72%);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
