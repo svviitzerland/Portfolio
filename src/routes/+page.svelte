@@ -28,6 +28,7 @@
 	let spotlightQuery = $state('');
 	let spotlightInput;
 	let lockTouchStartY = null;
+	let lockTouchStartX = null;
 	let windowLimitTimer;
 	const MAX_DESKTOP_WINDOWS = 8;
 
@@ -129,29 +130,23 @@
 	}
 
 	function handleLockPointerDown(event) {
-		if (event.pointerType === 'touch') lockTouchStartY = event.clientY;
+		lockTouchStartY = event.clientY;
+		lockTouchStartX = event.clientX;
 	}
 
 	function handleLockPointerUp(event) {
 		if (lockTouchStartY === null) return;
 		const swipeDistance = lockTouchStartY - event.clientY;
+		const horizontalDistance = Math.abs(lockTouchStartX - event.clientX);
+		const verticalDistance = Math.abs(swipeDistance);
 		lockTouchStartY = null;
-		if (swipeDistance > 48) unlockPortfolio();
+		lockTouchStartX = null;
+		if (swipeDistance > 48 || (verticalDistance < 12 && horizontalDistance < 12)) unlockPortfolio();
 	}
 
 	function handleLockPointerCancel() {
 		lockTouchStartY = null;
-	}
-
-	function handleLockTouchStart(event) {
-		lockTouchStartY = event.changedTouches[0]?.clientY ?? null;
-	}
-
-	function handleLockTouchEnd(event) {
-		if (lockTouchStartY === null) return;
-		const swipeDistance = lockTouchStartY - event.changedTouches[0]?.clientY;
-		lockTouchStartY = null;
-		if (swipeDistance > 48) unlockPortfolio();
+		lockTouchStartX = null;
 	}
 
 	function openWindow(name) {
@@ -287,35 +282,7 @@
 		<WeatherWidget />
 		<button class="ios-widget calendar-widget" onclick={() => openWindow('book')}><span class="widget-kicker">WEDNESDAY</span><strong>14</strong><span>3 Events</span><small>Portfolio · Projects · Writing</small></button>
 	</section>
-	<button class="ios-search" type="button" onclick={openSpotlight} aria-label="Search portfolio">
-		<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.2 4.2"/></svg>
-		<span>Search</span>
-	</button>
 </main>
-
-{#if spotlightOpen}
-	<button class="spotlight-dismiss" type="button" aria-label="Close search" onclick={closeSpotlight}></button>
-	<dialog open class="spotlight-panel" aria-label="Search portfolio">
-		<form onsubmit={submitSpotlight}>
-		<div class="spotlight-field">
-			<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.2 4.2"/></svg>
-			<input bind:this={spotlightInput} bind:value={spotlightQuery} type="search" aria-label="Search apps and portfolio" placeholder="Search apps and portfolio" />
-			<button type="button" class="spotlight-close" onclick={closeSpotlight} aria-label="Close search">×</button>
-		</div>
-		<div class="spotlight-results">
-			{#each spotlightResults as item (item.title)}
-				<button type="button" class="spotlight-result" onclick={() => openSpotlightItem(item)}>
-					<span class="spotlight-result-icon"><AppIcon name={item.title} class="h-9 w-9" /></span>
-					<span><strong>{item.title}</strong><small>{item.detail}</small></span>
-					<span class="spotlight-result-arrow">↵</span>
-				</button>
-			{:else}
-				<p class="spotlight-empty">No results for “{spotlightQuery}”</p>
-			{/each}
-		</div>
-		</form>
-	</dialog>
-{/if}
 
 <div class="desktop-shell fixed inset-0 isolate transform-gpu overflow-hidden select-none rounded-[24px] border border-white/20 bg-slate-950 shadow-[0_18px_60px_rgba(0,0,0,0.35)]" class:locked={isLocked} class:mobile-app-open={windows.some((desktopWindow) => !desktopWindow.minimized)}>
 	<!-- macOS Big Sur wallpaper -->
@@ -391,6 +358,11 @@
 		/>
 	</div>
 
+	<button class="ios-search" type="button" onclick={openSpotlight} aria-label="Search portfolio">
+		<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.2 4.2"/></svg>
+		<span>Search</span>
+	</button>
+
 	<!-- Dock -->
 	<div class="shared-dock">
 		<Dock
@@ -399,6 +371,29 @@
 			onrestore={restoreWindow}
 		/>
 	</div>
+	{#if spotlightOpen}
+		<button class="spotlight-dismiss" type="button" aria-label="Close search" onclick={closeSpotlight}></button>
+		<dialog open class="spotlight-panel" aria-label="Search portfolio">
+			<form onsubmit={submitSpotlight}>
+				<div class="spotlight-field">
+					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.2 4.2"/></svg>
+					<input bind:this={spotlightInput} bind:value={spotlightQuery} type="search" aria-label="Search apps and portfolio" placeholder="Search apps and portfolio" />
+					<button type="button" class="spotlight-close" onclick={closeSpotlight} aria-label="Close search">×</button>
+				</div>
+				<div class="spotlight-results">
+					{#each spotlightResults as item (item.title)}
+						<button type="button" class="spotlight-result" onclick={() => openSpotlightItem(item)}>
+							<span class="spotlight-result-icon"><AppIcon name={item.title} class="h-9 w-9" /></span>
+							<span><strong>{item.title}</strong><small>{item.detail}</small></span>
+							<span class="spotlight-result-arrow">↵</span>
+						</button>
+					{:else}
+						<p class="spotlight-empty">No results for “{spotlightQuery}”</p>
+					{/each}
+				</div>
+			</form>
+		</dialog>
+	{/if}
 
 	<!-- Brightness overlay -->
 	{#if brightness < 100}
@@ -455,8 +450,6 @@
 		onpointerdown={handleLockPointerDown}
 		onpointerup={handleLockPointerUp}
 		onpointercancel={handleLockPointerCancel}
-		ontouchstart={handleLockTouchStart}
-		ontouchend={handleLockTouchEnd}
 		transition:fade={{ duration: 520 }}
 	>
 		<span class="lock-clock" aria-live="off">
@@ -503,6 +496,7 @@
 	.mobile-unlock-prompt { display: none; }
 	.lock-home-indicator { display: none; }
 	.lock-screen:focus-visible { outline: 3px solid #a9caff; outline-offset: -7px; }
+	.ios-search { display: none; }
 	.ios-home { display: none; }
 	.mobile-scroll-space { display: none; }
 	@media (max-width: 1023px) {
@@ -531,7 +525,7 @@
 		:global(.calendar-widget strong) { font-size: clamp(42px, 10vw, 78px); }
 		:global(.ios-widget > span:not(.widget-kicker)) { margin-top: 7px; font-size: clamp(13px, 3vw, 19px); }
 		:global(.ios-widget small) { margin-top: 4px; color: #ffffffb5; font-size: clamp(9px, 2.1vw, 13px); white-space: nowrap; }
-		.ios-search { position: fixed; left: 50%; bottom: calc(106px + env(safe-area-inset-bottom)); z-index: 10; display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 0; padding: 7px 13px; transform: translateX(-50%); border: 1px solid #ffffff30; border-radius: 22px; background: #ffffff30; backdrop-filter: blur(18px); color: #ffffffe0; font: inherit; font-size: 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+		.ios-search { position: fixed; left: 50%; bottom: calc(112px + env(safe-area-inset-bottom)); z-index: 850; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin: 0; padding: 8px 14px; transform: translateX(-50%); border: 1px solid #ffffff30; border-radius: 22px; background: #ffffff30; backdrop-filter: blur(18px); color: #ffffffe0; font: inherit; font-size: 15px; cursor: pointer; -webkit-tap-highlight-color: transparent; pointer-events: auto; }
 		.ios-search svg { width: 18px; height: 18px; flex: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 		.ios-search:active { transform: translateX(-50%) scale(.97); }
 	}
@@ -555,7 +549,8 @@
 	@media (max-width: 699px) {
 		.mobile-scroll-space { display: block; flex: 0 0 96px; width: 1px; }
 		.desktop-shell.mobile-app-open .desktop-icons,
-		.desktop-shell.mobile-app-open .shared-dock { display: none; }
+		.desktop-shell.mobile-app-open .shared-dock,
+		.desktop-shell.mobile-app-open .ios-search { display: none; }
 		.ios-home.mobile-app-open { display: none; }
 		.lock-screen { background-position: 54% center; }
 		.lock-menubar { display: none; }
