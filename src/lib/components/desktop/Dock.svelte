@@ -36,9 +36,9 @@
 </script>
 
 <!-- Dock -->
-<div class="fixed bottom-3 left-1/2 -translate-x-1/2 z-40">
+<div class="pointer-events-none fixed inset-x-0 bottom-2 z-40 flex justify-center px-2 pb-[env(safe-area-inset-bottom)] sm:bottom-3 sm:px-4">
 	<nav
-		class="flex items-center gap-2 px-3 py-2 bg-zinc-800/50 backdrop-blur-2xl border border-white/20 rounded-2xl"
+		class="dock-glass liquid-glass-surface pointer-events-auto flex max-w-[calc(100vw-1rem)] items-end gap-0.5 rounded-[1.1rem] px-1.5 py-1 sm:gap-1 sm:px-2"
 		aria-label="Social links dock"
 	>
 		{#each socials as social, i (social.network)}
@@ -46,19 +46,17 @@
 				<!-- Tooltip -->
 				{#if tooltipIndex === i}
 					<div
-						class="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-zinc-800 border border-zinc-600 rounded-lg text-xs text-zinc-200 whitespace-nowrap shadow-xl pointer-events-none"
+						class="dock-tooltip liquid-glass-popover pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg px-3 py-1 text-xs text-white shadow-xl"
 					>
 						{social.network}
-						<div
-							class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-800 border-r border-b border-zinc-600 rotate-45"
-						></div>
+						<div class="dock-tooltip-arrow absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45"></div>
 					</div>
 				{/if}
 
 				{#if social.network === 'Blog'}
 					<button
 						type="button"
-						class="flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-700/60 text-zinc-300 hover:text-white hover:bg-zinc-600/60 hover:scale-110 transition-all duration-200 cursor-pointer"
+						class="dock-item liquid-glass-hover flex h-9 w-9 cursor-pointer items-center justify-center rounded-[0.8rem] text-white sm:h-10 sm:w-10"
 						onmouseenter={() => (tooltipIndex = i)}
 						onmouseleave={() => (tooltipIndex = -1)}
 						onclick={(e) => { e.stopPropagation(); onopen('blog'); }}
@@ -73,7 +71,7 @@
 						href={social.url}
 						target="_blank"
 						rel="noopener noreferrer"
-						class="flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-700/60 text-zinc-300 hover:text-white hover:bg-zinc-600/60 hover:scale-110 transition-all duration-200"
+						class="dock-item liquid-glass-hover flex h-9 w-9 items-center justify-center rounded-[0.8rem] text-white sm:h-10 sm:w-10"
 						onmouseenter={() => (tooltipIndex = i)}
 						onmouseleave={() => (tooltipIndex = -1)}
 						aria-label={social.network}
@@ -90,21 +88,41 @@
 			</div>
 		{/each}
 
-		<!-- Spotify dock button -->
+		<div class="dock-separator self-center" aria-hidden="true"></div>
+
+		<!-- Books dock button -->
 		<div class="relative">
-			{#if tooltipIndex === socials.length}
-				<div
-					class="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-zinc-800 border border-zinc-600 rounded-lg text-xs text-zinc-200 whitespace-nowrap shadow-xl pointer-events-none"
-				>
-					Spotify
-					<div
-						class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-800 border-r border-b border-zinc-600 rotate-45"
-					></div>
+			{#if tooltipIndex === socials.length + 1}
+				<div class="dock-tooltip liquid-glass-popover pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg px-3 py-1 text-xs text-white shadow-xl">
+					Books
+					<div class="dock-tooltip-arrow absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45"></div>
 				</div>
 			{/if}
 			<button
 				type="button"
-				class="flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-700/60 text-[#1DB954] hover:text-[#1ed760] hover:bg-zinc-600/60 hover:scale-110 transition-all duration-200 cursor-pointer"
+				class="dock-item liquid-glass-hover flex h-9 w-9 cursor-pointer items-center justify-center rounded-[0.8rem] text-sky-100 sm:h-10 sm:w-10"
+				onmouseenter={() => (tooltipIndex = socials.length + 1)}
+				onmouseleave={() => (tooltipIndex = -1)}
+				onclick={(e) => { e.stopPropagation(); onopen('book'); }}
+				aria-label="Open Books"
+			>
+				<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
+				</svg>
+			</button>
+		</div>
+
+		<!-- Spotify dock button -->
+		<div class="relative">
+			{#if tooltipIndex === socials.length}
+				<div class="dock-tooltip liquid-glass-popover pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg px-3 py-1 text-xs text-white shadow-xl">
+					Spotify
+					<div class="dock-tooltip-arrow absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45"></div>
+				</div>
+			{/if}
+			<button
+				type="button"
+				class="dock-item liquid-glass-hover flex h-9 w-9 cursor-pointer items-center justify-center rounded-[0.8rem] text-[#1ed760] sm:h-10 sm:w-10"
 				onmouseenter={() => (tooltipIndex = socials.length)}
 				onmouseleave={() => (tooltipIndex = -1)}
 				onclick={(e) => { e.stopPropagation(); onopen('spotify'); }}
@@ -117,3 +135,56 @@
 		</div>
 	</nav>
 </div>
+
+<style>
+	.dock-glass {
+		min-height: 2.75rem;
+	}
+
+	.dock-item {
+		transition:
+			transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+			background-color 180ms ease,
+			filter 180ms ease;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.dock-item:hover,
+	.dock-item:focus-visible {
+		transform: translateY(-3px) scale(1.1);
+		filter: drop-shadow(0 3px 5px rgb(0 0 0 / 24%));
+	}
+
+	.dock-item:active {
+		transform: translateY(-2px) scale(0.96);
+	}
+
+	.dock-tooltip {
+		white-space: nowrap;
+	}
+
+	.dock-tooltip-arrow {
+		background: rgb(var(--liquid-glass-tint) / var(--liquid-glass-popover-opacity));
+		border-right: 1px solid rgb(var(--liquid-glass-tint) / var(--liquid-glass-edge-opacity));
+		border-bottom: 1px solid rgb(var(--liquid-glass-tint) / var(--liquid-glass-edge-opacity));
+	}
+
+	.dock-separator {
+		width: 1px;
+		height: 1.6rem;
+		margin-inline: 0.15rem;
+		background: rgb(var(--liquid-glass-tint) / var(--liquid-glass-separator-opacity));
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.dock-item {
+			transition: none;
+		}
+
+		.dock-item:hover,
+		.dock-item:focus-visible,
+		.dock-item:active {
+			transform: none;
+		}
+	}
+</style>

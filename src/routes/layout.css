@@ -6,6 +6,15 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+	/* One shared tint controls the dock, its icon hover surfaces, and every glass navbar. */
+	--liquid-glass-tint: 228 238 252;
+	--liquid-glass-opacity: 0.11;
+	--liquid-glass-sheen-opacity: 0.18;
+	--liquid-glass-edge-opacity: 0.25;
+	--liquid-glass-highlight-opacity: 0.34;
+	--liquid-glass-hover-opacity: 0.2;
+	--liquid-glass-popover-opacity: 0.28;
+	--liquid-glass-separator-opacity: 0.24;
 	--radius: 0.625rem;
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.141 0.005 285.823);
@@ -38,6 +47,84 @@
 	--sidebar-accent-foreground: oklch(0.21 0.006 285.885);
 	--sidebar-border: oklch(0.92 0.004 286.32);
 	--sidebar-ring: oklch(0.705 0.015 286.067);
+}
+
+.liquid-glass-surface {
+	background: linear-gradient(
+		180deg,
+		rgb(var(--liquid-glass-tint) / var(--liquid-glass-sheen-opacity)),
+		rgb(var(--liquid-glass-tint) / var(--liquid-glass-opacity))
+	);
+	backdrop-filter: blur(24px) saturate(190%);
+	-webkit-backdrop-filter: blur(24px) saturate(190%);
+	border: 1px solid rgb(var(--liquid-glass-tint) / var(--liquid-glass-edge-opacity));
+	box-shadow:
+		inset 0 1px 0 rgb(var(--liquid-glass-tint) / var(--liquid-glass-highlight-opacity)),
+		0 9px 24px rgb(0 0 0 / 22%),
+		0 2px 5px rgb(0 0 0 / 14%);
+}
+
+.liquid-glass-menubar {
+	background: linear-gradient(
+		180deg,
+		rgb(var(--liquid-glass-tint) / var(--liquid-glass-sheen-opacity)),
+		rgb(var(--liquid-glass-tint) / var(--liquid-glass-opacity))
+	);
+	backdrop-filter: blur(24px) saturate(190%);
+	-webkit-backdrop-filter: blur(24px) saturate(190%);
+	border-bottom: 1px solid rgb(var(--liquid-glass-tint) / var(--liquid-glass-edge-opacity));
+	box-shadow: inset 0 1px 0 rgb(var(--liquid-glass-tint) / var(--liquid-glass-highlight-opacity));
+}
+
+.liquid-glass-popover {
+	background: rgb(var(--liquid-glass-tint) / var(--liquid-glass-popover-opacity));
+	backdrop-filter: blur(22px) saturate(190%);
+	-webkit-backdrop-filter: blur(22px) saturate(190%);
+	border: 1px solid rgb(var(--liquid-glass-tint) / var(--liquid-glass-edge-opacity));
+	box-shadow: 0 12px 32px rgb(0 0 0 / 24%);
+}
+
+.liquid-glass-hover {
+	transition: background-color 180ms ease;
+}
+
+.liquid-glass-hover:hover,
+.liquid-glass-hover:focus-visible {
+	background-color: rgb(var(--liquid-glass-tint) / var(--liquid-glass-hover-opacity));
+}
+
+.liquid-glass-icon {
+	background: linear-gradient(
+		155deg,
+		rgb(var(--liquid-glass-tint) / calc(var(--liquid-glass-sheen-opacity) + 0.08)),
+		rgb(var(--liquid-glass-tint) / var(--liquid-glass-opacity))
+	);
+	backdrop-filter: blur(18px) saturate(175%);
+	-webkit-backdrop-filter: blur(18px) saturate(175%);
+	border: 1px solid rgb(var(--liquid-glass-tint) / var(--liquid-glass-edge-opacity));
+	box-shadow:
+		inset 0 1px 0 rgb(var(--liquid-glass-tint) / var(--liquid-glass-highlight-opacity)),
+		0 4px 12px rgb(0 0 0 / 18%);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+	.liquid-glass-surface,
+	.liquid-glass-menubar,
+	.liquid-glass-popover,
+	.liquid-glass-icon {
+		background: rgb(var(--liquid-glass-tint) / 0.92);
+	}
+}
+
+@media (prefers-reduced-transparency: reduce) {
+	.liquid-glass-surface,
+	.liquid-glass-menubar,
+	.liquid-glass-popover,
+	.liquid-glass-icon {
+		background: rgb(var(--liquid-glass-tint) / 0.92);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
 }
 
 .dark {

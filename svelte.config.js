@@ -6,7 +6,7 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		alias: {
-			$data: '../../data'
+			$data: './data'
 		}
 	},
 	extensions: ['.svelte', '.md'],

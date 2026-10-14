@@ -81,7 +81,7 @@
 	>
 		<!-- Icon container -->
 		<div
-			class="w-14 h-14 flex items-center justify-center rounded-[14px] bg-zinc-800/80 border border-zinc-700/60 shadow-lg group-hover:scale-105 group-hover:border-zinc-600 transition-all duration-200"
+			class="liquid-glass-icon w-14 h-14 flex items-center justify-center rounded-[14px] group-hover:scale-105 transition-all duration-200"
 		>
 			{@render children()}
 		</div>

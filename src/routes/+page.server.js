@@ -1,4 +1,5 @@
 import { fetchMarkdownPosts } from '$lib/utils/posts';
+import books from '$lib/content/books.json';
 
 export async function load({ request, platform }) {
 	// Get geo data from Cloudflare headers
@@ -54,6 +55,7 @@ export async function load({ request, platform }) {
 			city,
 			region
 		},
-		posts
+		posts,
+		books
 	};
 }

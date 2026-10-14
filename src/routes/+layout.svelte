@@ -4,34 +4,11 @@
 	import '@fontsource/outfit/700.css';
 	import '@fontsource/outfit/900.css';
 	import './layout.css';
-	import IntroAnimation from '$lib/components/IntroAnimation.svelte';
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
 	import { spring } from 'svelte/motion';
-	import { browser } from '$app/environment';
 	import { resolve } from '$app/paths';
 
 	let { children } = $props();
-
-	// Intro animation state
-	let showIntro = $state(false);
-	let introComplete = $state(false);
-
-	onMount(() => {
-		// Only show intro on homepage and if not shown before in this session
-		if ($page.url.pathname === '/' && !sessionStorage.getItem('intro_shown')) {
-			showIntro = true;
-		} else {
-			introComplete = true;
-		}
-	});
-
-	function handleIntroComplete() {
-		introComplete = true;
-		if (browser) {
-			sessionStorage.setItem('intro_shown', 'true');
-		}
-	}
 
 	// Custom Cursor Logic
 	let coords = spring({ x: 0, y: 0 }, { stiffness: 0.05, damping: 0.25 });
@@ -67,32 +44,26 @@
 	></div>
 </div>
 
-<!-- Intro Animation -->
-{#if showIntro}
-	<IntroAnimation onComplete={handleIntroComplete} />
-{/if}
-
 <div
-	class="font-sans antialiased text-zinc-50 selection:bg-zinc-300 selection:text-zinc-900 bg-zinc-950 min-h-screen flex flex-col items-center overflow-x-hidden selection:bg-white/20 transition-opacity duration-500"
-	class:opacity-0={showIntro && !introComplete}
+	class="font-sans antialiased text-zinc-50 selection:bg-zinc-300 selection:text-zinc-900 bg-zinc-950 min-h-screen flex flex-col items-center overflow-x-hidden selection:bg-white/20"
 >
 	{#if $page.url.pathname.startsWith('/blog/')}
 	<nav
-		class="fixed top-2 left-2 right-2 z-50 h-7 bg-zinc-800/70 backdrop-blur-2xl border border-white/10 rounded-xl flex items-center justify-between px-4 select-none shadow-lg"
+		class="liquid-glass-surface fixed top-2 left-2 right-2 z-50 flex h-7 items-center justify-between rounded-xl px-4 select-none"
 	>
 		<a
 			href={resolve('/')}
-			class="text-[12px] font-medium text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5"
+			class="text-[12px] font-medium text-slate-900/75 hover:text-slate-950 transition-colors flex items-center gap-1.5"
 		>
 			<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
 			</svg>
 			Desktop
 		</a>
-		<span class="text-[12px] text-zinc-500">Farhan Aulianda</span>
+		<span class="text-[12px] text-slate-900/70">Farhan Aulianda</span>
 		<a
 			href={resolve('/?open=blog')}
-			class="text-[12px] font-medium text-zinc-400 hover:text-white transition-colors"
+			class="text-[12px] font-medium text-slate-900/75 hover:text-slate-950 transition-colors"
 		>
 			All Posts
 		</a>

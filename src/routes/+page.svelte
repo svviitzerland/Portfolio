@@ -5,6 +5,7 @@
 	import Dock from '$lib/components/desktop/Dock.svelte';
 	import ProjectsContent from '$lib/components/desktop/ProjectsContent.svelte';
 	import BlogContent from '$lib/components/desktop/BlogContent.svelte';
+	import BooksContent from '$lib/components/desktop/BooksContent.svelte';
 	import SpotifyContent from '$lib/components/desktop/SpotifyContent.svelte';
 	import ResumeModal from '$lib/components/ResumeModal.svelte';
 	import { page } from '$app/stores';
@@ -13,7 +14,7 @@
 
 	let { data } = $props();
 
-	/** @type {null | 'projects' | 'blog' | 'dossier' | 'spotify'} */
+	/** @type {null | 'projects' | 'blog' | 'book' | 'dossier' | 'spotify'} */
 	let activeWindow = $state(null);
 	let brightness = $state(100);
 
@@ -25,8 +26,9 @@
 		dossier: { x: 20, y: 60 },
 		projects: { x: 20, y: 160 },
 		blog: { x: 20, y: 260 },
-		spotify: { x: 20, y: 360 },
-		nimbus: { x: 20, y: 460 }
+		book: { x: 20, y: 360 },
+		spotify: { x: 20, y: 460 },
+		nimbus: { x: 20, y: 560 }
 	};
 
 	let iconPositions = $state(structuredClone(defaultPositions));
@@ -47,8 +49,9 @@
 	// Auto-open folder from ?open= query param + load saved icon positions
 	onMount(() => {
 		const openParam = $page.url.searchParams.get('open');
-		if (openParam && ['projects', 'blog', 'dossier', 'spotify'].includes(openParam)) {
-			activeWindow = openParam;
+		const requestedWindow = $page.url.searchParams.has('book') ? 'book' : openParam;
+		if (requestedWindow && ['projects', 'blog', 'book', 'dossier', 'spotify'].includes(requestedWindow)) {
+			activeWindow = requestedWindow;
 			// Clean URL without reloading
 			goto('/', { replaceState: true, noScroll: true });
 		}
@@ -84,23 +87,17 @@
 </svelte:head>
 
 <!-- Desktop Shell -->
-<div class="fixed inset-0 bg-zinc-950 overflow-hidden select-none">
-	<!-- Wallpaper - Dark with wavy lines -->
+<div class="desktop-shell fixed inset-0 isolate transform-gpu overflow-hidden select-none rounded-[24px] border border-white/20 bg-slate-950 shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+	<!-- macOS Big Sur wallpaper -->
 	<div
-		class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-800/30 via-zinc-950 to-zinc-950"
+		class="absolute inset-0 bg-cover bg-center"
+		style="background-image: url('/images/big-sur-wallpaper.jpg')"
+		aria-hidden="true"
 	></div>
 	<div
-		class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-zinc-800/15 via-transparent to-transparent"
+		class="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/20 to-slate-950/35"
+		aria-hidden="true"
 	></div>
-	<!-- Wavy horizontal lines pattern -->
-	<svg class="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-		<defs>
-			<pattern id="wavy-lines" x="0" y="0" width="200" height="40" patternUnits="userSpaceOnUse">
-				<path d="M0 20 Q25 10, 50 20 T100 20 T150 20 T200 20" fill="none" stroke="#a1a1aa" stroke-width="0.8"/>
-			</pattern>
-		</defs>
-		<rect width="100%" height="100%" fill="url(#wavy-lines)" />
-	</svg>
 
 	<!-- Menu Bar -->
 	<MenuBar bind:brightness />
@@ -117,6 +114,19 @@
 		>
 			<svg class="w-7 h-7 text-red-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+			</svg>
+		</DesktopIcon>
+
+		<!-- Books -->
+		<DesktopIcon
+			label="Books"
+			onclick={() => openWindow('book')}
+			x={iconPositions.book.x}
+			y={iconPositions.book.y}
+			onmove={(nx, ny) => moveIcon('book', nx, ny)}
+		>
+			<svg class="w-7 h-7 text-sky-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
 			</svg>
 		</DesktopIcon>
 
@@ -217,6 +227,14 @@
 	<DesktopWindow title="Blog" close={closeWindow}>
 		{#snippet children(search)}
 			<BlogContent {posts} {search} />
+		{/snippet}
+	</DesktopWindow>
+{/if}
+
+{#if activeWindow === 'book'}
+	<DesktopWindow title="Books" close={closeWindow}>
+		{#snippet children(search)}
+			<BooksContent books={data?.books || []} {search} />
 		{/snippet}
 	</DesktopWindow>
 {/if}
