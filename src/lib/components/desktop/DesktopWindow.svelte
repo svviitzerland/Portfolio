@@ -4,7 +4,7 @@
 		close,
 		minimize,
 		onfocus,
-		onopen,
+		onnavigate,
 		zIndex = 20,
 		initialX = 120,
 		initialY = 90,
@@ -14,7 +14,6 @@
 	} = $props();
 
 	const favorites = [
-		{ label: 'Recents', name: 'projects', icon: '◷' },
 		{ label: 'Projects', name: 'projects', icon: '▰' },
 		{ label: 'Blog', name: 'blog', icon: '✎' },
 		{ label: 'Books', name: 'book', icon: '▤' },
@@ -30,6 +29,14 @@
 	let resizeStart = $state(null);
 	let maximized = $state(false);
 	let previousFrame = null;
+	let lastTitle = title;
+
+	$effect(() => {
+		if (title !== lastTitle) {
+			search = '';
+			lastTitle = title;
+		}
+	});
 
 	function startDrag(event) {
 		if (event.button !== 0 || event.target.closest('button, input')) return;
@@ -131,7 +138,7 @@
 			{#each favorites as favorite (favorite.label)}
 				<button
 					class="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[12px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
-					onclick={() => onopen(favorite.name)}
+					onclick={() => onnavigate(favorite.name)}
 				>
 					<span class="w-4 text-center text-[15px] text-sky-400">{favorite.icon}</span>
 					<span>{favorite.label}</span>

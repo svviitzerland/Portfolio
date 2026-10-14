@@ -110,6 +110,16 @@
 		);
 	}
 
+	function navigateWindow(id, name) {
+		if (!windowTitles[name]) return;
+		windows = windows.map((desktopWindow) =>
+			desktopWindow.id === id
+				? { ...desktopWindow, name, title: windowTitles[name] }
+				: desktopWindow
+		);
+		focusWindow(id);
+	}
+
 	function closeWindow(id) {
 		windows = windows.filter((desktopWindow) => desktopWindow.id !== id);
 	}
@@ -290,7 +300,7 @@
 			close={() => closeWindow(desktopWindow.id)}
 			minimize={() => minimizeWindow(desktopWindow.id)}
 			onfocus={() => focusWindow(desktopWindow.id)}
-			onopen={openWindow}
+			onnavigate={(name) => navigateWindow(desktopWindow.id, name)}
 		>
 			{#snippet children(search)}
 				{#if desktopWindow.name === 'projects'}
