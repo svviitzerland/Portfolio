@@ -382,7 +382,7 @@
 		:global(.calendar-widget strong) { font-size: clamp(42px, 10vw, 78px); }
 		:global(.ios-widget > span:not(.widget-kicker)) { margin-top: 7px; font-size: clamp(13px, 3vw, 19px); }
 		:global(.ios-widget small) { margin-top: 4px; color: #ffffffb5; font-size: clamp(9px, 2.1vw, 13px); white-space: nowrap; }
-		.ios-search { flex: 0 0 auto; align-self: center; margin: auto 0 20px; padding: 7px 17px; border: 1px solid #ffffff30; border-radius: 22px; background: #ffffff30; backdrop-filter: blur(18px); color: #ffffffe0; font-size: 14px; }
+		.ios-search { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 10; margin: 0; padding: 7px 17px; transform: translateX(-50%); border: 1px solid #ffffff30; border-radius: 22px; background: #ffffff30; backdrop-filter: blur(18px); color: #ffffffe0; font-size: 14px; }
 	}
 	@media (max-width: 699px) {
 		.ios-status { display: none; }
