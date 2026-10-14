@@ -1,5 +1,10 @@
 export const fetchMarkdownPosts = async () => {
 	const allPostFiles = import.meta.glob('/src/lib/content/posts/*.md');
+	const rawPostFiles = import.meta.glob('/src/lib/content/posts/*.md', {
+		query: '?raw',
+		import: 'default',
+		eager: true
+	});
 	const iterablePostFiles = Object.entries(allPostFiles);
 
 	const allPosts = await Promise.all(
@@ -12,7 +17,8 @@ export const fetchMarkdownPosts = async () => {
 				return {
 					meta: metadata,
 					path: postPath,
-					slug
+					slug,
+					searchText: searchableText(rawPostFiles[path] || '')
 				};
 			} catch (error) {
 				console.error('Error loading post:', path, error);
@@ -27,3 +33,15 @@ export const fetchMarkdownPosts = async () => {
 		return new Date(b.meta.date) - new Date(a.meta.date);
 	});
 };
+
+function searchableText(markdown) {
+	return markdown
+		.replace(/^---[\s\S]*?---\s*/, '')
+		.replace(/<script[\s\S]*?<\/script>/gi, ' ')
+		.replace(/<[^>]+>/g, ' ')
+		.replace(/!?\[([^\]]*)\]\([^)]+\)/g, '$1')
+		.replace(/https?:\/\/\S+/g, ' ')
+		.replace(/[#>*_`~|-]/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+}

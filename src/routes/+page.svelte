@@ -33,6 +33,7 @@
 	const MAX_DESKTOP_WINDOWS = 8;
 
 	const posts = $derived(data?.posts || []);
+	const books = $derived(data?.books || []);
 	const windowTitles = {
 		projects: 'Projects',
 		blog: 'Blog',
@@ -41,18 +42,45 @@
 		spotify: 'Spotify'
 	};
 	const spotlightItems = [
-		{ title: 'Farhan', detail: 'Resume and about', window: 'dossier', terms: 'profile cv resume about' },
-		{ title: 'Projects', detail: 'Selected work', window: 'projects', terms: 'portfolio work' },
-		{ title: 'Blog', detail: 'Articles and writing', window: 'blog', terms: 'articles writing posts' },
-		{ title: 'Books', detail: 'Reading list', window: 'book', terms: 'reading library' },
-		{ title: 'Spotify', detail: 'Music and playlists', window: 'spotify', terms: 'music playlists' },
-		{ title: 'Nimbus', detail: 'Open Nimbus', url: 'https://nimbus.farhanaulianda.my.id', terms: 'cloud nimbus' }
+		{ title: 'Farhan', detail: 'Resume and about', window: 'dossier', icon: 'Farhan', terms: 'profile cv resume about' },
+		{ title: 'Projects', detail: 'Selected work', window: 'projects', icon: 'Projects', terms: 'portfolio work' },
+		{ title: 'Blog', detail: 'Articles and writing', window: 'blog', icon: 'Blog', terms: 'articles writing posts' },
+		{ title: 'Books', detail: 'Reading list', window: 'book', icon: 'Books', terms: 'reading library' },
+		{ title: 'Spotify', detail: 'Music and playlists', window: 'spotify', icon: 'Spotify', terms: 'music playlists' },
+		{ title: 'Nimbus', detail: 'Open Nimbus', url: 'https://nimbus.farhanaulianda.my.id', icon: 'Nimbus', terms: 'cloud nimbus' }
 	];
 	const spotlightResults = $derived.by(() => {
 		const query = spotlightQuery.trim().toLowerCase();
-		return spotlightItems.filter((item) =>
+		const appResults = spotlightItems.filter((item) =>
 			`${item.title} ${item.detail} ${item.terms}`.toLowerCase().includes(query)
 		);
+		if (!query) return appResults;
+
+		const blogResults = posts
+			.filter((post) => {
+				const searchable = [post.meta.title, post.meta.description, ...(post.meta.tags || []), post.searchText]
+					.filter(Boolean)
+					.join(' ')
+					.toLowerCase();
+				return searchable.includes(query);
+			})
+			.map((post) => ({
+				title: post.meta.title,
+				detail: `Blog article${post.meta.description ? ` · ${post.meta.description}` : ''}`,
+				icon: 'Blog',
+				kind: 'post',
+				slug: post.slug
+			}));
+		const bookResults = books
+			.filter((book) => `${book.title} ${book.author || ''}`.toLowerCase().includes(query))
+			.map((book) => ({
+				title: book.title,
+				detail: `Book${book.author ? ` · ${book.author}` : ''}`,
+				icon: 'Books',
+				kind: 'book',
+				searchQuery: book.title
+			}));
+		return [...appResults, ...blogResults, ...bookResults];
 	});
 
 	// Desktop icon positions with localStorage persistence
@@ -149,7 +177,7 @@
 		lockTouchStartX = null;
 	}
 
-	function openWindow(name) {
+	function openWindow(name, initialSearch = '') {
 		if (!windowTitles[name]) return;
 		if (windows.length >= MAX_DESKTOP_WINDOWS) {
 			windowLimitNotice = true;
@@ -171,6 +199,7 @@
 				id,
 				name,
 				title: windowTitles[name],
+				initialSearch,
 				x: Math.max(8, Math.min(centeredX + cascade, window.innerWidth - 120)),
 				y: Math.max(40, Math.min(centeredY + cascade, window.innerHeight - 110)),
 				width,
@@ -194,6 +223,14 @@
 
 	function openSpotlightItem(item) {
 		closeSpotlight();
+		if (item.kind === 'post') {
+			goto(`/blog/${item.slug}`);
+			return;
+		}
+		if (item.kind === 'book') {
+			openWindow('book', item.searchQuery);
+			return;
+		}
 		if (item.url) {
 			window.open(item.url, '_blank', 'noopener');
 			return;
@@ -383,7 +420,7 @@
 				<div class="spotlight-results">
 					{#each spotlightResults as item (item.title)}
 						<button type="button" class="spotlight-result" onclick={() => openSpotlightItem(item)}>
-							<span class="spotlight-result-icon"><AppIcon name={item.title} class="h-9 w-9" /></span>
+							<span class="spotlight-result-icon"><AppIcon name={item.icon} class="h-9 w-9" /></span>
 							<span><strong>{item.title}</strong><small>{item.detail}</small></span>
 							<span class="spotlight-result-arrow">↵</span>
 						</button>
@@ -415,6 +452,7 @@
 			initialY={desktopWindow.y}
 			initialWidth={desktopWindow.width}
 			initialHeight={desktopWindow.height}
+			initialSearch={desktopWindow.initialSearch}
 			close={() => closeWindow(desktopWindow.id)}
 			minimize={() => minimizeWindow(desktopWindow.id)}
 			onfocus={() => focusWindow(desktopWindow.id)}
@@ -525,7 +563,7 @@
 		:global(.calendar-widget strong) { font-size: clamp(42px, 10vw, 78px); }
 		:global(.ios-widget > span:not(.widget-kicker)) { margin-top: 7px; font-size: clamp(13px, 3vw, 19px); }
 		:global(.ios-widget small) { margin-top: 4px; color: #ffffffb5; font-size: clamp(9px, 2.1vw, 13px); white-space: nowrap; }
-		.ios-search { position: fixed; left: 50%; bottom: calc(112px + env(safe-area-inset-bottom)); z-index: 850; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin: 0; padding: 8px 14px; transform: translateX(-50%); border: 1px solid #ffffff30; border-radius: 22px; background: #ffffff30; backdrop-filter: blur(18px); color: #ffffffe0; font: inherit; font-size: 15px; cursor: pointer; -webkit-tap-highlight-color: transparent; pointer-events: auto; }
+		.ios-search { position: fixed; left: 50%; bottom: calc(112px + env(safe-area-inset-bottom)); z-index: 850; display: inline-flex; height: 30px; align-items: center; justify-content: center; gap: 7px; margin: 0; padding: 0 13px; transform: translateX(-50%); border: 1px solid #ffffff30; border-radius: 999px; background: #ffffff30; backdrop-filter: blur(18px); color: #ffffffe0; font: inherit; font-size: 14px; line-height: 20px; cursor: pointer; -webkit-tap-highlight-color: transparent; pointer-events: auto; }
 		.ios-search svg { width: 18px; height: 18px; flex: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 		.ios-search:active { transform: translateX(-50%) scale(.97); }
 	}
@@ -541,9 +579,9 @@
 	.spotlight-result { display: flex; align-items: center; gap: 11px; width: 100%; padding: 8px; border: 0; border-radius: 14px; color: inherit; background: transparent; text-align: left; cursor: pointer; }
 	.spotlight-result:hover, .spotlight-result:focus-visible { outline: 0; background: #ffffff18; }
 	.spotlight-result-icon { display: grid; width: 38px; height: 38px; flex: none; place-items: center; overflow: hidden; border-radius: 10px; }
-	.spotlight-result > span:nth-child(2) { display: grid; gap: 2px; }
+	.spotlight-result > span:nth-child(2) { display: grid; min-width: 0; flex: 1; gap: 2px; }
 	.spotlight-result strong { font-size: 14px; font-weight: 600; }
-	.spotlight-result small { color: #d8e1efaa; font-size: 12px; }
+	.spotlight-result small { overflow: hidden; color: #d8e1efaa; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 	.spotlight-result-arrow { margin-left: auto; color: #d8e1ef88; }
 	.spotlight-empty { margin: 10px 12px; color: #e3eaf3b8; font-size: 14px; }
 	@media (max-width: 699px) {

@@ -10,6 +10,7 @@
 		initialY = 90,
 		initialWidth = 900,
 		initialHeight = 620,
+		initialSearch = '',
 		children
 	} = $props();
 
@@ -23,7 +24,7 @@
 	let y = $state(initialY);
 	let width = $state(initialWidth);
 	let height = $state(initialHeight);
-	let search = $state('');
+	let search = $state(initialSearch);
 	let dragStart = $state(null);
 	let resizeStart = $state(null);
 	let maximized = $state(false);
