@@ -228,7 +228,7 @@
 		name="description"
 		content="Full Stack & Cloud Engineer | Security & AI/ML Enthusiast"
 	/>
-	<link rel="preload" as="image" href="/images/big-sur-wallpaper.webp" fetchpriority="high" />
+	<link rel="preload" as="image" href="/images/earth-night-wallpaper.webp" fetchpriority="high" />
 	<link rel="preload" as="image" href="/images/lockscreen-avatar.webp" />
 </svelte:head>
 
@@ -245,7 +245,7 @@
 <div class="desktop-shell fixed inset-0 isolate transform-gpu overflow-hidden select-none rounded-[24px] border border-white/20 bg-slate-950 shadow-[0_18px_60px_rgba(0,0,0,0.35)]" class:locked={isLocked}>
 	<!-- macOS Big Sur wallpaper -->
 	<img
-		src="/images/big-sur-wallpaper.webp"
+		src="/images/earth-night-wallpaper.webp"
 		alt=""
 		fetchpriority="high"
 		class="absolute inset-0 h-full w-full object-cover object-center"
@@ -449,7 +449,7 @@
 		padding: 0; border: 0; color: white; text-align: initial; cursor: pointer;
 		touch-action: none;
 		font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
-		background: #07101d url('/images/big-sur-wallpaper.webp') center 48% / cover no-repeat;
+		background: #07101d url('/images/earth-night-wallpaper.webp') center 48% / cover no-repeat;
 		isolation: isolate;
 	}
 	.lock-screen::before, .lock-screen::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; }
@@ -472,7 +472,7 @@
 		.ios-home {
 			position: fixed; inset: 0; z-index: 0; display: flex; flex-direction: column;
 			overflow: auto; padding: max(env(safe-area-inset-top), 14px) 18px max(env(safe-area-inset-bottom), 18px);
-			color: white; background: #080b12 url('/images/big-sur-wallpaper.webp') center / cover;
+			color: white; background: #080b12 url('/images/earth-night-wallpaper.webp') center / cover;
 			font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
 		}
 		.ios-home::before { content: ''; position: fixed; inset: 0; background: linear-gradient(180deg, #07101c33, #06101c45); pointer-events: none; }
