@@ -1,4 +1,6 @@
 <script>
+	import { untrack } from 'svelte';
+
 	let {
 		title,
 		close,
@@ -20,16 +22,16 @@
 		{ label: 'Books', name: 'book', icon: '▤' }
 	];
 
-	let x = $state(initialX);
-	let y = $state(initialY);
-	let width = $state(initialWidth);
-	let height = $state(initialHeight);
-	let search = $state(initialSearch);
+	let x = $state(untrack(() => initialX));
+	let y = $state(untrack(() => initialY));
+	let width = $state(untrack(() => initialWidth));
+	let height = $state(untrack(() => initialHeight));
+	let search = $state(untrack(() => initialSearch));
 	let dragStart = $state(null);
 	let resizeStart = $state(null);
 	let maximized = $state(false);
 	let previousFrame = null;
-	let lastTitle = title;
+	let lastTitle = untrack(() => title);
 
 	$effect(() => {
 		if (title !== lastTitle) {
@@ -42,8 +44,8 @@
 		if (event.button !== 0 || event.target.closest('button, input')) return;
 		onfocus?.();
 		dragStart = { pointerX: event.clientX, pointerY: event.clientY, x, y };
-		e.currentTarget.setPointerCapture(event.pointerId);
-		e.preventDefault();
+		event.currentTarget.setPointerCapture(event.pointerId);
+		event.preventDefault();
 	}
 
 	function moveDrag(event) {
@@ -62,9 +64,9 @@
 		if (event.button !== 0) return;
 		onfocus?.();
 		resizeStart = { pointerX: event.clientX, pointerY: event.clientY, width, height };
-		e.currentTarget.setPointerCapture(event.pointerId);
-		e.preventDefault();
-		e.stopPropagation();
+		event.currentTarget.setPointerCapture(event.pointerId);
+		event.preventDefault();
+		event.stopPropagation();
 	}
 
 	function moveResize(event) {
@@ -93,17 +95,21 @@
 	}
 </script>
 
-<section
+<div
 	class="finder-window fixed flex flex-col overflow-hidden rounded-xl border border-white/15 bg-[#202124]/95 text-white shadow-[0_24px_80px_rgba(0,0,0,0.48)] backdrop-blur-2xl"
 	style="left: {x}px; top: {y}px; width: {width}px; height: {height}px; z-index: {zIndex};"
 	role="dialog"
 	aria-label={title}
 	aria-modal="false"
+	tabindex="-1"
 	onpointerdown={onfocus}
 >
 	<!-- Finder toolbar and titlebar are also the drag handle. -->
 	<header
 		class="finder-toolbar flex h-[54px] shrink-0 items-center gap-4 border-b border-white/10 px-4"
+		role="toolbar"
+		aria-label="{title} window toolbar"
+		tabindex="-1"
 		onpointerdown={startDrag}
 		onpointermove={moveDrag}
 		onpointerup={endDrag}
@@ -123,7 +129,7 @@
 		<h2 class="min-w-0 flex-1 truncate text-center text-[13px] font-semibold text-white/90">{title}</h2>
 		<button class="mobile-app-close" aria-label="Close {title}" onclick={(event) => { event.stopPropagation(); close(); }}>‹</button>
 
-		<div class="flex shrink-0 items-center gap-2" onpointerdown={(event) => event.stopPropagation()}>
+		<div class="flex shrink-0 items-center gap-2">
 			<div class="relative hidden w-40 sm:block">
 				<svg class="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/45" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
 					<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
@@ -156,15 +162,16 @@
 		</main>
 	</div>
 
-	<div
-		class="finder-resize absolute bottom-1 right-1 h-5 w-5 cursor-nwse-resize"
+	<button
+		type="button"
+		class="finder-resize absolute bottom-1 right-1 h-5 w-5 cursor-nwse-resize appearance-none border-0 bg-transparent p-0"
+		aria-label="Resize window"
 		onpointerdown={startResize}
 		onpointermove={moveResize}
 		onpointerup={endResize}
 		onpointercancel={endResize}
-		aria-hidden="true"
-	></div>
-</section>
+	></button>
+</div>
 
 <style>
 	.finder-window {

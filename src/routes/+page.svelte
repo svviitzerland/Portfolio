@@ -26,7 +26,8 @@
 	let lockTime = $state(new Date());
 	let spotlightOpen = $state(false);
 	let spotlightQuery = $state('');
-	let spotlightInput;
+	/** @type {HTMLInputElement | null} */
+	let spotlightInput = $state(null);
 	let lockTouchStartY = null;
 	let lockTouchStartX = null;
 	let windowLimitTimer;
