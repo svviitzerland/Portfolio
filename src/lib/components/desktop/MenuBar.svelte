@@ -41,8 +41,13 @@
 	class="liquid-glass-menubar fixed top-0 left-0 right-0 z-[1000] flex h-8 items-center justify-between px-4 select-none"
 	class:lockscreen-menubar={lockscreen}
 >
-	<!-- Left: Name -->
-	<span class="text-[12px] font-medium text-white/90">Farhan Aulianda</span>
+	<!-- Left: Apple menu and portfolio name -->
+	<div class="flex items-center gap-3 text-white/95">
+		<svg class="h-[18px] w-[15px] shrink-0" viewBox="0 0 20 24" fill="currentColor" aria-hidden="true">
+			<path d="M16.53 12.72c-.02-2.52 2.06-3.73 2.15-3.79-1.17-1.72-2.99-1.96-3.64-1.99-1.55-.16-3.04.93-3.83.93-.8 0-2.02-.91-3.31-.88-1.7.03-3.28 1-4.15 2.53-1.77 3.08-.45 7.64 1.27 10.15.84 1.22 1.84 2.58 3.15 2.53 1.28-.05 1.76-.82 3.31-.82 1.54 0 1.98.82 3.33.79 1.38-.02 2.25-1.24 3.09-2.47.98-1.43 1.38-2.82 1.4-2.89-.03-.01-2.74-1.05-2.77-4.09ZM14.02 5.3c.7-.86 1.17-2.04 1.04-3.22-1.01.04-2.23.67-2.95 1.53-.65.75-1.22 1.95-1.07 3.1 1.12.09 2.27-.57 2.98-1.41Z" />
+		</svg>
+		<span class="text-[13px] font-bold tracking-tight">Farhan</span>
+	</div>
 
 	<!-- Right: Status icons + Time -->
 	<div class="flex items-center gap-3">
@@ -108,12 +113,13 @@
 </header>
 
 <style>
-	:global(.liquid-glass-menubar.lockscreen-menubar) {
+	:global(.liquid-glass-menubar) {
 		background: transparent;
 		backdrop-filter: none;
 		-webkit-backdrop-filter: none;
-		border-bottom: 0;
+		border: 0;
 		box-shadow: none;
+		border-radius: 0;
 	}
 
 	input[type='range']::-webkit-slider-thumb {
