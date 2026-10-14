@@ -241,24 +241,25 @@
 		}
 
 		.dock-glass {
-			width: min(100%, 272px);
+			width: min(100%, 560px);
 			max-width: none;
-			min-height: 68px;
+			min-height: 90px;
+			align-items: center;
 			justify-content: space-around;
-			gap: 4px;
-			padding: 7px 9px;
-			border-radius: 22px;
+			gap: 8px;
+			padding: 12px 16px;
+			border-radius: 28px;
 		}
 
 		.dock-item {
-			width: 50px !important;
-			height: 50px !important;
-			border-radius: 16px !important;
+			width: 64px !important;
+			height: 64px !important;
+			border-radius: 20px !important;
 		}
 
 		.dock-item :global(svg) {
-			width: 27px;
-			height: 27px;
+			width: 34px;
+			height: 34px;
 		}
 
 		.dock-social-linkedin,

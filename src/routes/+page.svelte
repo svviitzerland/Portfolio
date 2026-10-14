@@ -368,7 +368,7 @@
 		.desktop-shell { display: block; border: 0; border-radius: 0; background: transparent; box-shadow: none; overflow: visible; }
 		.desktop-shell > img, .desktop-shell > .pointer-events-none { display: none; }
 		.desktop-menubar { display: none; }
-		.desktop-icons { position: fixed !important; inset: auto 18px auto !important; top: clamp(270px, 40vh, 560px) !important; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(16px, 3.8vh, 30px) 6px; }
+		.desktop-icons { position: fixed !important; inset: auto 18px auto !important; top: clamp(270px, 40vh, 560px) !important; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(16px, 3.8vh, 30px) 0; }
 		.ios-status { height: 36px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; font-size: 15px; font-weight: 650; }
 		.status-island { width: 70px; height: 22px; border-radius: 20px; background: #050505; }
 		.status-location { font-size: 12px; }
@@ -382,10 +382,11 @@
 		:global(.calendar-widget strong) { font-size: clamp(42px, 10vw, 78px); }
 		:global(.ios-widget > span:not(.widget-kicker)) { margin-top: 7px; font-size: clamp(13px, 3vw, 19px); }
 		:global(.ios-widget small) { margin-top: 4px; color: #ffffffb5; font-size: clamp(9px, 2.1vw, 13px); white-space: nowrap; }
-		.ios-search { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 10; margin: 0; padding: 7px 17px; transform: translateX(-50%); border: 1px solid #ffffff30; border-radius: 22px; background: #ffffff30; backdrop-filter: blur(18px); color: #ffffffe0; font-size: 14px; }
+		.ios-search { position: fixed; left: 50%; bottom: calc(118px + env(safe-area-inset-bottom)); z-index: 10; margin: 0; padding: 7px 17px; transform: translateX(-50%); border: 1px solid #ffffff30; border-radius: 22px; background: #ffffff30; backdrop-filter: blur(18px); color: #ffffffe0; font-size: 14px; }
 	}
 	@media (max-width: 699px) {
 		.ios-status { display: none; }
+		.desktop-icons { top: calc(max(env(safe-area-inset-top), 14px) + clamp(22px, 5vh, 44px) + 50vw + 6px) !important; row-gap: clamp(18px, 5.7vw, 26px); }
 	}
 	@media (min-width: 700px) and (max-width: 1023px) {
 		.ios-home { padding-left: clamp(38px, 9vw, 120px); padding-right: clamp(38px, 9vw, 120px); }

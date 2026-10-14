@@ -116,8 +116,8 @@
 			touch-action: manipulation !important;
 		}
 		.app-icon-button > div {
-			width: min(17vw, 68px);
-			height: min(17vw, 68px);
+			width: min(17vw, 74px);
+			height: min(17vw, 74px);
 			border-radius: 22%;
 		}
 		.app-icon-button > div :global(svg) {

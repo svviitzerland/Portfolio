@@ -93,5 +93,5 @@
 	<span class="widget-kicker">{weather ? 'NEAR YOU' : 'LOCAL WEATHER'}</span>
 	<strong>{weather ? `${weather.temperature}°` : '—°'}</strong>
 	<span>{weather ? `${weather.icon} ${weather.description}` : prompt}</span>
-	<small>{weather ? `H:${weather.high}°  L:${weather.low}° · Open-Meteo` : 'Weather data by Open-Meteo'}</small>
+	<small>{weather ? `H:${weather.high}°  L:${weather.low}° · Open-Meteo` : 'Local forecast'}</small>
 </button>
