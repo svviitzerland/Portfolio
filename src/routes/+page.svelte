@@ -11,6 +11,7 @@
 	import ResumeContent from '$lib/components/ResumeContent.svelte';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 
 	let { data } = $props();
@@ -20,6 +21,9 @@
 	let nextWindowId = 1;
 	let highestZIndex = 20;
 	let windowLimitNotice = $state(false);
+	let isLocked = $state(true);
+	let lockTime = $state(new Date());
+	let lockTouchStartY = null;
 	let windowLimitTimer;
 	const MAX_DESKTOP_WINDOWS = 8;
 
@@ -60,6 +64,7 @@
 
 	// Auto-open folder from ?open= query param + load saved icon positions
 	onMount(() => {
+		const clockInterval = window.setInterval(() => (lockTime = new Date()), 1000);
 		const openParam = $page.url.searchParams.get('open');
 		const requestedWindow = $page.url.searchParams.has('book') ? 'book' : openParam;
 		if (requestedWindow && ['projects', 'blog', 'book', 'dossier', 'spotify'].includes(requestedWindow)) {
@@ -79,7 +84,57 @@
 		} catch (e) {
 			// Ignore parse errors, use defaults
 		}
+
+		return () => window.clearInterval(clockInterval);
 	});
+
+	const lockDate = $derived(
+		new Intl.DateTimeFormat('en-US', {
+			weekday: 'short',
+			day: 'numeric',
+			month: 'short'
+		}).format(lockTime)
+	);
+	const lockClock = $derived(
+		new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+			.format(lockTime)
+			.replace(':', '.')
+	);
+
+	function unlockPortfolio() {
+		if (!isLocked) return;
+		isLocked = false;
+	}
+
+	function handleWindowClick() {
+		if (isLocked) unlockPortfolio();
+	}
+
+	function handleLockPointerDown(event) {
+		if (event.pointerType === 'touch') lockTouchStartY = event.clientY;
+	}
+
+	function handleLockPointerUp(event) {
+		if (lockTouchStartY === null) return;
+		const swipeDistance = lockTouchStartY - event.clientY;
+		lockTouchStartY = null;
+		if (swipeDistance > 48) unlockPortfolio();
+	}
+
+	function handleLockPointerCancel() {
+		lockTouchStartY = null;
+	}
+
+	function handleLockTouchStart(event) {
+		lockTouchStartY = event.changedTouches[0]?.clientY ?? null;
+	}
+
+	function handleLockTouchEnd(event) {
+		if (lockTouchStartY === null) return;
+		const swipeDistance = lockTouchStartY - event.changedTouches[0]?.clientY;
+		lockTouchStartY = null;
+		if (swipeDistance > 48) unlockPortfolio();
+	}
 
 	function openWindow(name) {
 		if (!windowTitles[name]) return;
@@ -152,6 +207,11 @@
 	}
 
 	function handleWindowKeydown(event) {
+		if (isLocked) {
+			event.preventDefault();
+			unlockPortfolio();
+			return;
+		}
 		if (event.key !== 'Escape') return;
 		const frontWindow = windows
 			.filter((desktopWindow) => !desktopWindow.minimized)
@@ -160,7 +220,7 @@
 	}
 </script>
 
-<svelte:window onkeydown={handleWindowKeydown} />
+<svelte:window onclick={handleWindowClick} onkeydown={handleWindowKeydown} />
 
 <svelte:head>
 	<title>Farhan Aulianda</title>
@@ -169,6 +229,7 @@
 		content="Full Stack & Cloud Engineer | Security & AI/ML Enthusiast"
 	/>
 	<link rel="preload" as="image" href="/images/big-sur-wallpaper.webp" fetchpriority="high" />
+	<link rel="preload" as="image" href="/images/lockscreen-avatar.webp" />
 </svelte:head>
 
 <!-- Desktop Shell -->
@@ -181,7 +242,7 @@
 	<div class="ios-search">⌕ &nbsp; Search</div>
 </main>
 
-<div class="desktop-shell fixed inset-0 isolate transform-gpu overflow-hidden select-none rounded-[24px] border border-white/20 bg-slate-950 shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+<div class="desktop-shell fixed inset-0 isolate transform-gpu overflow-hidden select-none rounded-[24px] border border-white/20 bg-slate-950 shadow-[0_18px_60px_rgba(0,0,0,0.35)]" class:locked={isLocked}>
 	<!-- macOS Big Sur wallpaper -->
 	<img
 		src="/images/big-sur-wallpaper.webp"
@@ -316,7 +377,7 @@
 	{/if}
 	{#if windowLimitNotice}
 		<div class="liquid-glass-popover fixed top-12 left-1/2 z-[1100] -translate-x-1/2 rounded-xl px-4 py-2 text-xs font-medium text-slate-900 shadow-xl" role="status">
-			Batas 8 jendela tercapai. Tutup jendela untuk membuka yang baru.
+			You've reached the 8-window limit. Close a window to open another.
 		</div>
 	{/if}
 	{#each windows.filter((desktopWindow) => !desktopWindow.minimized) as desktopWindow (desktopWindow.id)}
@@ -354,7 +415,58 @@
 	{/each}
 </div>
 
+{#if isLocked}
+	<button
+		class="lock-screen"
+		aria-label="Open Farhan Aulianda's portfolio."
+		onclick={unlockPortfolio}
+		onpointerdown={handleLockPointerDown}
+		onpointerup={handleLockPointerUp}
+		onpointercancel={handleLockPointerCancel}
+		ontouchstart={handleLockTouchStart}
+		ontouchend={handleLockTouchEnd}
+		transition:fade={{ duration: 520 }}
+	>
+		<span class="lock-clock" aria-live="off">
+			<span class="lock-date">{lockDate}</span>
+			<span class="lock-time">{lockClock}</span>
+		</span>
+
+		<span class="lock-user">
+			<img src="/images/lockscreen-avatar.webp" alt="" />
+			<strong>Farhan Aulianda</strong>
+			<span class="unlock-prompt desktop-unlock-prompt">Click anywhere or press any key to continue</span>
+			<span class="unlock-prompt mobile-unlock-prompt">Swipe up or tap anywhere to continue</span>
+		</span>
+		<span class="lock-home-indicator" aria-hidden="true"></span>
+	</button>
+	<div class="lock-menubar"><MenuBar bind:brightness lockscreen /></div>
+{/if}
+
 <style>
+	.lock-screen {
+		position: fixed; inset: 0; z-index: 2000; display: block; width: 100%; height: 100%; overflow: hidden;
+		padding: 0; border: 0; color: white; text-align: initial; cursor: pointer;
+		touch-action: none;
+		font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+		background: #07101d url('/images/big-sur-wallpaper.webp') center 48% / cover no-repeat;
+		isolation: isolate;
+	}
+	.lock-screen::before, .lock-screen::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+	.lock-screen::before { background: linear-gradient(180deg, #020713a6 0%, #07152c70 38%, #0508159c 100%); }
+	.lock-screen::after { background: radial-gradient(ellipse at 50% 36%, transparent 5%, #03071335 70%, #02040b96 100%); }
+	.lock-menubar { position: fixed; inset: 0 0 auto; z-index: 2100; height: 32px; pointer-events: none; }
+	.desktop-shell.locked .desktop-menubar { visibility: hidden; }
+	.lock-clock { position: absolute; top: clamp(76px, 5.8vh, 116px); left: 50%; display: flex; flex-direction: column; align-items: center; transform: translateX(-50%); white-space: nowrap; }
+	.lock-date { color: #dce8ff; font-size: clamp(20px, 2vw, 36px); font-weight: 600; letter-spacing: -0.035em; text-shadow: 0 2px 18px #08142b88; }
+	.lock-time { margin-top: -4px; color: #b8d7ff; font-size: clamp(112px, 11.4vw, 184px); font-weight: 250; line-height: .98; letter-spacing: -.075em; text-shadow: 0 5px 35px #07193377; font-variant-numeric: tabular-nums; }
+	.lock-user { position: absolute; bottom: clamp(54px, 7vh, 100px); left: 50%; display: flex; flex-direction: column; align-items: center; transform: translateX(-50%); white-space: nowrap; text-shadow: 0 2px 12px #0009; }
+	.lock-user img { width: clamp(60px, 3.5vw, 82px); height: clamp(60px, 3.5vw, 82px); margin-bottom: 18px; border: 1px solid #ffffff66; border-radius: 50%; object-fit: cover; object-position: center 30%; box-shadow: 0 4px 24px #0006; }
+	.lock-user strong { font-size: clamp(16px, 1.1vw, 21px); font-weight: 650; letter-spacing: -.015em; }
+	.unlock-prompt { display: inline-flex; align-items: center; justify-content: center; margin-top: 18px; max-width: calc(100vw - 32px); color: #d4ddf0b8; font-size: clamp(13px, .9vw, 17px); font-weight: 550; line-height: 1.45; text-align: center; white-space: normal; }
+	.mobile-unlock-prompt { display: none; }
+	.lock-home-indicator { display: none; }
+	.lock-screen:focus-visible { outline: 3px solid #a9caff; outline-offset: -7px; }
 	.ios-home { display: none; }
 	@media (max-width: 1023px) {
 		.ios-home {
@@ -385,6 +497,16 @@
 		.ios-search { position: fixed; left: 50%; bottom: calc(118px + env(safe-area-inset-bottom)); z-index: 10; margin: 0; padding: 7px 17px; transform: translateX(-50%); border: 1px solid #ffffff30; border-radius: 22px; background: #ffffff30; backdrop-filter: blur(18px); color: #ffffffe0; font-size: 14px; }
 	}
 	@media (max-width: 699px) {
+		.lock-screen { background-position: 54% center; }
+		.lock-menubar { display: none; }
+		.lock-clock { top: calc(max(env(safe-area-inset-top), 28px) + 8vh); }
+		.lock-date { font-size: 20px; }
+		.lock-time { font-size: clamp(84px, 23vw, 118px); }
+		.lock-user { bottom: calc(max(env(safe-area-inset-bottom), 24px) + 6vh); }
+		.lock-user img { width: 64px; height: 64px; margin-bottom: 14px; }
+		.desktop-unlock-prompt { display: none; }
+		.mobile-unlock-prompt { display: inline-flex; margin-top: 14px; font-size: 13px; }
+		.lock-home-indicator { position: absolute; bottom: max(8px, env(safe-area-inset-bottom)); left: 50%; display: block; width: 134px; height: 5px; transform: translateX(-50%); border-radius: 999px; background: #fff; box-shadow: 0 1px 4px #0008; }
 		.ios-status { display: none; }
 		.desktop-icons { top: calc(max(env(safe-area-inset-top), 14px) + clamp(22px, 5vh, 44px) + 50vw + 6px) !important; row-gap: clamp(18px, 5.7vw, 26px); }
 	}
