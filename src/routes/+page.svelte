@@ -4,13 +4,14 @@
 	import WeatherWidget from '$lib/components/WeatherWidget.svelte';
 	import DesktopWindow from '$lib/components/desktop/DesktopWindow.svelte';
 	import Dock from '$lib/components/Dock.svelte';
+	import AppIcon from '$lib/components/AppIcon.svelte';
 	import ProjectsContent from '$lib/components/desktop/ProjectsContent.svelte';
 	import BlogContent from '$lib/components/desktop/BlogContent.svelte';
 	import BooksContent from '$lib/components/desktop/BooksContent.svelte';
 	import SpotifyContent from '$lib/components/desktop/SpotifyContent.svelte';
 	import ResumeContent from '$lib/components/ResumeContent.svelte';
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 
@@ -23,6 +24,9 @@
 	let windowLimitNotice = $state(false);
 	let isLocked = $state(true);
 	let lockTime = $state(new Date());
+	let spotlightOpen = $state(false);
+	let spotlightQuery = $state('');
+	let spotlightInput;
 	let lockTouchStartY = null;
 	let windowLimitTimer;
 	const MAX_DESKTOP_WINDOWS = 8;
@@ -35,6 +39,20 @@
 		dossier: 'Farhan — Resume',
 		spotify: 'Spotify'
 	};
+	const spotlightItems = [
+		{ title: 'Farhan', detail: 'Resume and about', window: 'dossier', terms: 'profile cv resume about' },
+		{ title: 'Projects', detail: 'Selected work', window: 'projects', terms: 'portfolio work' },
+		{ title: 'Blog', detail: 'Articles and writing', window: 'blog', terms: 'articles writing posts' },
+		{ title: 'Books', detail: 'Reading list', window: 'book', terms: 'reading library' },
+		{ title: 'Spotify', detail: 'Music and playlists', window: 'spotify', terms: 'music playlists' },
+		{ title: 'Nimbus', detail: 'Open Nimbus', url: 'https://nimbus.farhanaulianda.my.id', terms: 'cloud nimbus' }
+	];
+	const spotlightResults = $derived.by(() => {
+		const query = spotlightQuery.trim().toLowerCase();
+		return spotlightItems.filter((item) =>
+			`${item.title} ${item.detail} ${item.terms}`.toLowerCase().includes(query)
+		);
+	});
 
 	// Desktop icon positions with localStorage persistence
 	const POSITIONS_KEY = 'desktop-icon-positions';
@@ -168,6 +186,31 @@
 		];
 	}
 
+	async function openSpotlight() {
+		spotlightOpen = true;
+		await tick();
+		spotlightInput?.focus();
+	}
+
+	function closeSpotlight() {
+		spotlightOpen = false;
+		spotlightQuery = '';
+	}
+
+	function openSpotlightItem(item) {
+		closeSpotlight();
+		if (item.url) {
+			window.open(item.url, '_blank', 'noopener');
+			return;
+		}
+		openWindow(item.window);
+	}
+
+	function submitSpotlight(event) {
+		event.preventDefault();
+		if (spotlightResults[0]) openSpotlightItem(spotlightResults[0]);
+	}
+
 	function focusWindow(id) {
 		highestZIndex += 1;
 		windows = windows.map((desktopWindow) =>
@@ -207,6 +250,11 @@
 	}
 
 	function handleWindowKeydown(event) {
+		if (spotlightOpen && event.key === 'Escape') {
+			event.preventDefault();
+			closeSpotlight();
+			return;
+		}
 		if (isLocked) {
 			event.preventDefault();
 			unlockPortfolio();
@@ -239,8 +287,35 @@
 		<WeatherWidget />
 		<button class="ios-widget calendar-widget" onclick={() => openWindow('book')}><span class="widget-kicker">WEDNESDAY</span><strong>14</strong><span>3 Events</span><small>Portfolio · Projects · Writing</small></button>
 	</section>
-	<div class="ios-search">⌕ &nbsp; Search</div>
+	<button class="ios-search" type="button" onclick={openSpotlight} aria-label="Search portfolio">
+		<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.2 4.2"/></svg>
+		<span>Search</span>
+	</button>
 </main>
+
+{#if spotlightOpen}
+	<button class="spotlight-dismiss" type="button" aria-label="Close search" onclick={closeSpotlight}></button>
+	<dialog open class="spotlight-panel" aria-label="Search portfolio">
+		<form onsubmit={submitSpotlight}>
+		<div class="spotlight-field">
+			<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.2 4.2"/></svg>
+			<input bind:this={spotlightInput} bind:value={spotlightQuery} type="search" aria-label="Search apps and portfolio" placeholder="Search apps and portfolio" />
+			<button type="button" class="spotlight-close" onclick={closeSpotlight} aria-label="Close search">×</button>
+		</div>
+		<div class="spotlight-results">
+			{#each spotlightResults as item (item.title)}
+				<button type="button" class="spotlight-result" onclick={() => openSpotlightItem(item)}>
+					<span class="spotlight-result-icon"><AppIcon name={item.title} class="h-9 w-9" /></span>
+					<span><strong>{item.title}</strong><small>{item.detail}</small></span>
+					<span class="spotlight-result-arrow">↵</span>
+				</button>
+			{:else}
+				<p class="spotlight-empty">No results for “{spotlightQuery}”</p>
+			{/each}
+		</div>
+		</form>
+	</dialog>
+{/if}
 
 <div class="desktop-shell fixed inset-0 isolate transform-gpu overflow-hidden select-none rounded-[24px] border border-white/20 bg-slate-950 shadow-[0_18px_60px_rgba(0,0,0,0.35)]" class:locked={isLocked} class:mobile-app-open={windows.some((desktopWindow) => !desktopWindow.minimized)}>
 	<!-- macOS Big Sur wallpaper -->
@@ -456,8 +531,27 @@
 		:global(.calendar-widget strong) { font-size: clamp(42px, 10vw, 78px); }
 		:global(.ios-widget > span:not(.widget-kicker)) { margin-top: 7px; font-size: clamp(13px, 3vw, 19px); }
 		:global(.ios-widget small) { margin-top: 4px; color: #ffffffb5; font-size: clamp(9px, 2.1vw, 13px); white-space: nowrap; }
-		.ios-search { position: fixed; left: 50%; bottom: calc(118px + env(safe-area-inset-bottom)); z-index: 10; margin: 0; padding: 7px 17px; transform: translateX(-50%); border: 1px solid #ffffff30; border-radius: 22px; background: #ffffff30; backdrop-filter: blur(18px); color: #ffffffe0; font-size: 14px; }
+		.ios-search { position: fixed; left: 50%; bottom: calc(106px + env(safe-area-inset-bottom)); z-index: 10; display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 0; padding: 7px 13px; transform: translateX(-50%); border: 1px solid #ffffff30; border-radius: 22px; background: #ffffff30; backdrop-filter: blur(18px); color: #ffffffe0; font: inherit; font-size: 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+		.ios-search svg { width: 18px; height: 18px; flex: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+		.ios-search:active { transform: translateX(-50%) scale(.97); }
 	}
+	.spotlight-dismiss { position: fixed; inset: 0; z-index: 1190; width: 100%; height: 100%; border: 0; background: #05091466; cursor: default; }
+	.spotlight-panel { position: fixed; inset: auto; top: max(12vh, calc(env(safe-area-inset-top) + 22px)); left: 50%; z-index: 1200; width: min(520px, calc(100vw - 28px)); max-height: min(72vh, 640px); margin: 0; padding: 10px; transform: translateX(-50%); overflow: auto; border: 1px solid #ffffff35; border-radius: 22px; color: #f8fbff; background: #182437eF; box-shadow: 0 24px 70px #0008, inset 0 1px #ffffff24; backdrop-filter: blur(28px) saturate(1.4); }
+	.spotlight-panel form { margin: 0; }
+	.spotlight-field { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border: 1px solid #ffffff27; border-radius: 15px; background: #ffffff12; }
+	.spotlight-field > svg { width: 20px; height: 20px; flex: none; stroke: #dce8f9; stroke-width: 1.8; stroke-linecap: round; }
+	.spotlight-field input { width: 100%; min-width: 0; border: 0; outline: 0; color: white; background: transparent; font: inherit; font-size: 16px; }
+	.spotlight-field input::placeholder { color: #ffffff9c; }
+	.spotlight-close { width: 28px; height: 28px; flex: none; border: 0; border-radius: 50%; color: #d9e4f2; background: #ffffff18; font-size: 22px; line-height: 1; cursor: pointer; }
+	.spotlight-results { display: grid; gap: 4px; max-height: 55vh; margin-top: 8px; overflow: auto; }
+	.spotlight-result { display: flex; align-items: center; gap: 11px; width: 100%; padding: 8px; border: 0; border-radius: 14px; color: inherit; background: transparent; text-align: left; cursor: pointer; }
+	.spotlight-result:hover, .spotlight-result:focus-visible { outline: 0; background: #ffffff18; }
+	.spotlight-result-icon { display: grid; width: 38px; height: 38px; flex: none; place-items: center; overflow: hidden; border-radius: 10px; }
+	.spotlight-result > span:nth-child(2) { display: grid; gap: 2px; }
+	.spotlight-result strong { font-size: 14px; font-weight: 600; }
+	.spotlight-result small { color: #d8e1efaa; font-size: 12px; }
+	.spotlight-result-arrow { margin-left: auto; color: #d8e1ef88; }
+	.spotlight-empty { margin: 10px 12px; color: #e3eaf3b8; font-size: 14px; }
 	@media (max-width: 699px) {
 		.mobile-scroll-space { display: block; flex: 0 0 96px; width: 1px; }
 		.desktop-shell.mobile-app-open .desktop-icons,
