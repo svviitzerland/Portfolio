@@ -5,44 +5,10 @@
 	import '@fontsource/outfit/900.css';
 	import './layout.css';
 	import { page } from '$app/stores';
-	import { spring } from 'svelte/motion';
 	import { resolve } from '$app/paths';
 
 	let { children } = $props();
-
-	// Custom Cursor Logic
-	let coords = spring({ x: 0, y: 0 }, { stiffness: 0.05, damping: 0.25 });
-	let size = spring(10, { stiffness: 0.1, damping: 0.25 });
-
-	function handleMouseMove(e) {
-		coords.set({ x: e.clientX, y: e.clientY });
-	}
-
-	function handleMouseDown() {
-		size.set(20);
-	}
-
-	function handleMouseUp() {
-		size.set(10);
-	}
 </script>
-
-<svelte:window
-	on:mousemove={handleMouseMove}
-	on:mousedown={handleMouseDown}
-	on:mouseup={handleMouseUp}
-/>
-
-<!-- Custom Cursor -->
-<div
-	class="hidden md:block fixed top-0 left-0 pointer-events-none z-[100] mix-blend-difference"
-	style="transform: translate({$coords.x}px, {$coords.y}px)"
->
-	<div
-		style="width: {$size}px; height: {$size}px;"
-		class="bg-white rounded-full -translate-x-1/2 -translate-y-1/2"
-	></div>
-</div>
 
 <div
 	class="font-sans antialiased text-zinc-50 selection:bg-zinc-300 selection:text-zinc-900 bg-zinc-950 min-h-screen flex flex-col items-center overflow-x-hidden selection:bg-white/20"
